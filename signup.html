@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>EnPick - 회원가입</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="left">
+      <div class="left-inner">
+        <div class="logo-box">
+          <img src="assets/enpick-logo.png" alt="EnPick 로고" class="logo" />
+          <h1>EnPick</h1>
+          <p>당신만을 위한 토익 영어 단어 학습장</p>
+        </div>
+        <img src="assets/study-illustration.png" alt="공부 이미지" class="illustration" />
+      </div>
+    </div>
+    
+    <div class="right">
+      <h2>Hello!</h2>
+      <p>Sign Up to Get Started</p>
+
+      <form action="http://localhost:3000/signup" method="POST">
+        <input type="text" name="full_name" placeholder="Full Name" required />
+        <input type="email" name="email" placeholder="Email Address" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <button type="submit">Register</button>
+
+        <!-- 오류 메시지 영역 (폼 내부로 이동) -->
+        <div id="error-message" style="color: red; margin-top: 12px;"></div>
+      </form>  
+
+      <p class="bottom-text">
+        Already Have An Account? <a href="login.html">Log In</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- 자바스크립트: 오류 메시지 표시 -->
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    if (error) {
+      document.getElementById('error-message').innerText = decodeURIComponent(error);
+    }
+  </script>
+</body>
+</html>

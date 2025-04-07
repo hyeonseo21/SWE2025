@@ -1,0 +1,208 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #ffffff;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.left {
+  flex: 1;
+  background: #51569d;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 5vh 3vw;
+  min-height: 100vh;
+}
+
+.left-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5vh;
+  animation: fadeIn 1.2s ease forwards;
+  opacity: 1;
+  animation-delay: 0.3s;
+}
+
+.logo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2vh;
+}
+
+.logo {
+  width: clamp(80px, 10vw, 140px);
+  position: relative;
+  top: 10px;
+}
+
+.logo-box h1 {
+  font-size: clamp(24px, 3vw, 60px);
+  font-weight: bold;
+  margin: 0;
+}
+
+.logo-box p {
+  font-size: clamp(14px, 1.8vw, 28px);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.illustration {
+  width: clamp(180px, 28vw, 380px);
+  max-width: 90%;
+}
+
+.right {
+  flex: 1;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.right h2 {
+  font-size: clamp(20px, 2.5vw, 36px);
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.right p {
+  font-size: clamp(14px, 1.4vw, 18px);
+  margin-bottom: 20px;
+  color: #333;
+}
+
+form {
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+}
+
+input {
+  padding: 12px 40px;
+  margin-bottom: 15px;
+  border-radius: 30px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 14px;
+  background-repeat: no-repeat;
+  background-position: 12px center;
+  background-size: 20px;
+  color: #333;
+}
+
+input[type="text"] {
+  background-image: url('https://img.icons8.com/ios-filled/50/000000/user.png');
+}
+
+input[type="email"] {
+  background-image: url('https://img.icons8.com/ios-filled/50/000000/email.png');
+}
+
+input[type="password"] {
+  background-image: url('https://img.icons8.com/ios-filled/50/000000/lock.png');
+}
+
+button {
+  padding: 12px;
+  border: none;
+  border-radius: 30px;
+  background-color: #7d87dc;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #5c63bd;
+}
+
+.bottom-text {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+}
+
+.bottom-text a {
+  color: #7d87dc;
+  text-decoration: none;
+}
+
+/* ✅ 성공 메시지 */
+.success-message {
+  color: #2b63c6;
+  white-space: nowrap;
+  font-size: 14px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.success-message a {
+  color: #2b63c6;
+  font-weight: bold;
+  text-decoration: none;
+  margin-left: 8px;
+}
+
+.success-message a:hover {
+  text-decoration: underline;
+}
+
+/* ✅ 오류 메시지 (추가됨) */
+#error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 12px;
+  margin-bottom: -8px;
+  text-align: center;
+  width: 100%;
+}
+
+.hidden {
+  display: none;
+}
+
+/* 반응형: 태블릿 이하 */
+@media screen and (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .left,
+  .right {
+    flex: none;
+    width: 100%;
+    min-height: auto;
+    padding: 30px 20px;
+  }
+
+  .logo {
+    width: 100px;
+  }
+
+  .illustration {
+    width: 250px;
+  }
+
+  .logo-box h1 {
+    font-size: 36px;
+  }
+
+  .logo-box p {
+    font-size: 18px;
+  }
+}
