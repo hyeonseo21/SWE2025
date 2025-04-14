@@ -21,10 +21,11 @@
     <div class="right">
       <h2>Hello Again!</h2>
       <p>Welcome Back</p>
-      <form action="http://localhost:3000/login" method="POST">
-        <input type="email" name="email" placeholder="Email Address" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <button type="submit">Login</button>
+      <form id="loginForm">
+        <input type="email" name="email" placeholder="이메일" required />
+        <input type="password" name="password" placeholder="비밀번호" required />
+        <button type="submit">로그인</button>
+        <p id="error-message" class="hidden">이메일 또는 비밀번호가 올바르지 않습니다.</p>
       </form>
       
       <div class="bottom-links">
@@ -53,5 +54,32 @@
       color: #ccc;
     }
   </style>
+
+  <script>  //로그인 여부 localStorage 저장, userRole 처리 등 위한 Script 추가
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      const password = e.target.password.value;
+
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userRole', result.role);
+        localStorage.setItem('userName', result.name);
+        window.location.href = 'home.html';
+      } else {
+        document.getElementById('error-message').textContent = result.message || '로그인 실패';
+        document.getElementById('error-message').classList.remove('hidden');
+      }
+
+    });
+  </script>
 </body>
 </html>

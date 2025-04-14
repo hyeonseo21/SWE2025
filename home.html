@@ -87,7 +87,7 @@
       <h2>EnPick</h2>
     </div>
     <div class="nav-user">
-      <a href="login.html" class="logout-btn">로그아웃</a>
+      <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
     </div>
   </nav>
 
@@ -128,8 +128,17 @@
   </div>
 
   <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      alert('로그인 후 이용할 수 있습니다.');
+      window.location.href = 'login.html';
+    }
     // 사용자 이름 표시
     document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('logoutBtn').addEventListener('click', (e) => {   //로그아웃시 isLoggedIn 저장 해제
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userRole');
+        window.location.href = 'login.html';
+      });
       // 세션에서 사용자 정보를 가져와서 표시하는 로직이 들어갈 예정
     });
   </script>

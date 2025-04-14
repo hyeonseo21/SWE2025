@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TOEIC Vocabulary</title>
+  <!-- 기본 스타일시트 링크 -->
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/vocabulary.css" />
+</head>
+<body>
+
+  <!-- 상단 네비게이션 바 -->
+  <nav class="nav-bar">
+    <!-- 좌측 로고 -->
+    <div class="nav-left">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" class="logo" />
+      <h2>EnPick</h2>
+    </div>
+
+    <!-- 중앙 관리자 인증 영역 -->
+    <div class="nav-center">
+      <!-- 관리자 비밀번호 입력 폼 -->
+      <div id="adminAuthForm" class="admin-auth-form" style="display: none;">
+          <!--span class="lock-icon">🔒</span-->
+          <input type="password" id="adminPasswordInput" placeholder="🔒 관리자 비밀번호 입력" />
+          <button id="adminAuthBtn">확인</button>
+      </div>
+
+      <!-- 관리자 인증 버튼 -->
+      <button id="adminToggleBtn" class="admin-btn">관리자 버전</button>
+    </div>
+
+    <!-- 우측 로그아웃 -->
+    <div class="nav-right">
+      <a href="#" class="logout-btn">로그아웃</a>
+    </div>
+  </nav>
+
+  <!-- 사이드바 메뉴 -->
+  <div class="sidebar">
+    <a href="home.html" class="menu-item">홈</a>
+    <a href="vocabulary.html" class="menu-item active">단어장</a>
+    <a href="#" class="menu-item">학습</a>
+    <a href="#" class="menu-item">테스트</a>
+    <a href="#" class="menu-item">통계</a>
+  </div>
+
+  <!-- 메인 콘텐츠 영역 -->
+  <div class="main-content">
+    <h1>단어장</h1>
+
+    <!-- 검색 및 필터 기능 -->
+    <div class="search-section">
+      <div class="search-box">
+        <div class="search-input-wrapper">
+          <input type="text" placeholder="단어를 입력하세요..." id="searchInput" />
+        </div>
+        <select id="filterType">
+          <option value="all">전체 품사</option>
+          <option value="noun">명사</option>
+          <option value="verb">동사</option>
+          <option value="adjective">형용사</option>
+          <option value="adverb">부사</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 관리자 단어 추가 양식 -->
+    <div id="wordAddForm" style="display: none; margin-top: 2rem;">
+      <h2>📌 단어 추가</h2>
+      <input type="text" id="addWord" placeholder="단어" />
+      <input type="text" id="addPartOfSpeech" placeholder="품사" />
+      <input type="text" id="addMeaning" placeholder="의미" />
+      <input type="text" id="addSynonym" placeholder="유의어" />
+      <input type="text" id="addAntonym" placeholder="반의어" />
+      <input type="text" id="addExampleEn" placeholder="예문 (영어)" />
+      <input type="text" id="addExampleKo" placeholder="예문 (한글)" />
+      <button id="submitWordBtn">추가하기</button>
+    </div>
+
+    <!-- 단어 리스트 테이블 -->
+    <div class="word-table">
+      <table>
+        <thead>
+          <tr>
+            <th>단어</th>
+            <th>품사</th>
+            <th>의미</th>
+            <th>학습 상태</th>
+          </tr>
+        </thead>
+        <tbody id="wordTableBody">
+          <!-- JavaScript로 동적 생성 -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 영역 -->
+    <div class="pagination"></div>
+  </div>
+
+  <!-- 주요 스크립트 -->
+  <script>
+    let wordData = [];
+    let filteredWords = [];
+    let currentPage = 1;
+    let isAdmin = false;
+    const itemsPerPage = 20;
+
+    // 페이지 로드 시 실행
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 로컬 스토리지에서 관리자 여부 확인
+      isAdmin = localStorage.getItem('isAdmin') === 'true';
+      document.getElementById('wordAddForm').style.display = isAdmin ? 'block' : 'none';
+
+      const adminToggleBtn = document.getElementById('adminToggleBtn');
+      const adminAuthForm = document.getElementById('adminAuthForm');
+      const adminAuthBtn = document.getElementById('adminAuthBtn');
+
+      // 관리자 인증 폼 토글
+      adminToggleBtn.addEventListener('click', () => {
+        if (isAdmin) {
+          // 이미 관리자일 경우 → 로그아웃 여부 묻기
+          const confirmLogout = confirm('관리자 버전 로그아웃 하시겠습니까?');
+          if (confirmLogout) {
+            localStorage.removeItem('isAdmin');
+            location.reload(); // 관리자 권한 해제 후 새로고침
+          }
+        } else {
+          // 관리자 인증 전일 경우 → 인증창 보이기
+          adminAuthForm.classList.toggle('show');
+          adminAuthForm.style.display = adminAuthForm.classList.contains('show') ? 'block' : 'none';
+        }
+      });
+      
+
+      // 관리자 인증 요청
+      adminAuthBtn.addEventListener('click', async () => {
+        const password = document.getElementById('adminPasswordInput').value;
+
+        const res = await fetch('http://localhost:3000/api/verify-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+
+        const result = await res.json();
+        if (res.ok && result.success) {
+          alert('✅ 관리자 인증 성공');
+          localStorage.setItem('isAdmin', 'true');
+          location.reload();
+        } else {
+          alert('❌ 비밀번호가 틀렸습니다');
+        }
+      });
+
+      // 로그아웃 처리 (관리자 인증 해제 포함)
+      document.querySelector('.logout-btn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.removeItem('isAdmin');
+        window.location.href = 'login.html';
+      });
+
+      // 관리자 단어 추가 처리
+      document.getElementById('submitWordBtn')?.addEventListener('click', async () => {
+        const word = document.getElementById('addWord').value.trim();
+        const part = document.getElementById('addPartOfSpeech').value.trim();
+        const meaning = document.getElementById('addMeaning').value.trim();
+        const synonym = document.getElementById('addSynonym').value.trim() || '-';
+        const antonym = document.getElementById('addAntonym').value.trim() || '-';
+        const exEn = document.getElementById('addExampleEn').value.trim() || '-';
+        const exKo = document.getElementById('addExampleKo').value.trim() || '-';
+
+        if (!word || !part || !meaning) {
+          alert('단어, 품사, 의미는 필수 항목입니다!');
+          return;
+        }
+
+        const res = await fetch('http://localhost:3000/api/add-word', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ word, part_of_speech: part, meaning, synonym, antonym, example_en: exEn, example_ko: exKo })
+        });
+
+        const result = await res.json();
+        if (res.ok && result.success) {
+          alert('✅ 단어가 성공적으로 추가되었습니다!');
+          location.reload();
+        } else {
+          alert(`❌ 추가 실패: ${result.error}`);
+        }
+      });
+
+      // DB에서 단어 불러오기
+      try {
+        const response = await fetch('http://localhost:3000/api/words');
+        wordData = await response.json();
+        filteredWords = [...wordData];
+        displayPage(currentPage);
+      } catch (error) {
+        console.error('❌ 단어 데이터를 불러오는 중 오류 발생:', error);
+        document.getElementById('wordTableBody').innerHTML =
+          '<tr><td colspan="4">단어 데이터를 불러오는 중 오류가 발생했습니다.</td></tr>';
+      }
+
+      // 검색 이벤트 설정
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filterType = document.getElementById('filterType').value;
+        filteredWords = wordData.filter(word => {
+          const matchesSearch = word.word.toLowerCase().includes(searchTerm) || word.meaning.toLowerCase().includes(searchTerm);
+          const matchesFilter = filterType === 'all' || word.part_of_speech === filterType;
+          return matchesSearch && matchesFilter;
+        });
+        currentPage = 1;
+        displayPage(currentPage);
+      });
+
+      // 품사 필터링 설정
+      document.getElementById('filterType').addEventListener('change', (e) => {
+        const filterValue = e.target.value;
+        const searchTerm = searchInput.value.toLowerCase();
+        filteredWords = wordData.filter(word => {
+          const matchesSearch = word.word.toLowerCase().includes(searchTerm) || word.meaning.toLowerCase().includes(searchTerm);
+          const matchesFilter = filterValue === 'all' || word.part_of_speech === filterValue;
+          return matchesSearch && matchesFilter;
+        });
+        currentPage = 1;
+        displayPage(currentPage);
+      });
+    });
+
+    // 단어 행 출력
+    function displayWords(words) {
+      const tableBody = document.getElementById('wordTableBody');
+      tableBody.innerHTML = '';
+      words.forEach(word => {
+        const row = createWordRow(word);
+        tableBody.appendChild(row);
+      });
+    }
+
+    // 페이지별 단어 출력
+    function displayPage(page) {
+      currentPage = page;
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      displayWords(filteredWords.slice(start, end));
+      updatePagination(page, Math.ceil(filteredWords.length / itemsPerPage));
+    }
+
+    // 페이지네이션 UI 생성
+    function updatePagination(currentPage, totalPages) {
+      const pagination = document.querySelector('.pagination');
+      pagination.innerHTML = '';
+
+      const prevButton = document.createElement('button');
+      prevButton.textContent = '⟨';
+      prevButton.disabled = currentPage === 1;
+      prevButton.addEventListener('click', () => displayPage(currentPage - 1));
+      pagination.appendChild(prevButton);
+
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      if (startPage > 1) {
+        pagination.appendChild(createPageButton(1));
+        if (startPage > 2) pagination.appendChild(createEllipsis());
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pagination.appendChild(createPageButton(i));
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pagination.appendChild(createEllipsis());
+        pagination.appendChild(createPageButton(totalPages));
+      }
+
+      const nextButton = document.createElement('button');
+      nextButton.textContent = '⟩';
+      nextButton.disabled = currentPage === totalPages;
+      nextButton.addEventListener('click', () => displayPage(currentPage + 1));
+      pagination.appendChild(nextButton);
+    }
+
+    function createPageButton(pageNum) {
+      const button = document.createElement('button');
+      button.textContent = pageNum;
+      button.classList.toggle('active', pageNum === currentPage);
+      button.addEventListener('click', () => displayPage(pageNum));
+      return button;
+    }
+
+    function createEllipsis() {
+      const span = document.createElement('span');
+      span.textContent = '...';
+      span.style.margin = '0 8px';
+      return span;
+    }
+
+    // 단어 행 생성 + 삭제 버튼 + 수정 버튼 (관리자만 표시)
+    function createWordRow(word) {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${word.word}</td>
+        <td>${word.part_of_speech}</td>
+        <td>${word.meaning}</td>
+        <td>
+          미학습
+          ${isAdmin ? `
+          <button class="delete-btn" data-word="${word.word}">🗑️</button>
+          <button class="edit-btn" data-word="${word.word}">✏️</button>
+          ` : ''}
+        </td>
+      `;
+    
+      // 삭제 버튼 이벤트
+      if (isAdmin) {
+        const deleteBtn = row.querySelector('.delete-btn');
+        deleteBtn?.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (!confirm(`'${word.word}'를 삭제할까요?`)) return;
+    
+          const res = await fetch('http://localhost:3000/api/delete-word', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ word: word.word })
+          });
+    
+          const result = await res.json();
+          if (res.ok && result.success) {
+            alert('삭제 완료');
+            location.reload();
+          } else {
+            alert(`삭제 실패: ${result.error}`);
+          }
+        });
+    
+        // ✏️ 수정 버튼 이벤트
+        const editBtn = row.querySelector('.edit-btn');
+        editBtn?.addEventListener('click', (e) => {
+          e.stopPropagation(); // 상세페이지로 이동 방지
+    
+          // 기존 수정 폼 제거
+          const existingForm = document.querySelector('.edit-form-row');
+          if (existingForm) existingForm.remove();
+    
+          // 수정 폼 추가
+          const editRow = document.createElement('tr');
+          editRow.classList.add('edit-form-row');
+          editRow.innerHTML = `
+            <td colspan="4">
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <input type="text" id="editWord" value="${word.word}" disabled />
+                <input type="text" id="editPartOfSpeech" value="${word.part_of_speech}" />
+                <input type="text" id="editMeaning" value="${word.meaning}" />
+                <input type="text" id="editSynonym" value="${word.synonym || '-'}" />
+                <input type="text" id="editAntonym" value="${word.antonym || '-'}" />
+                <input type="text" id="editExampleEn" value="${word.example_en || '-'}" />
+                <input type="text" id="editExampleKo" value="${word.example_ko || '-'}" />
+                <button id="confirmEditBtn">수정 완료</button>
+              </div>
+            </td>
+          `;
+          row.after(editRow);
+    
+          // 수정 완료 이벤트
+          document.getElementById('confirmEditBtn').addEventListener('click', async () => {
+            const updated = {
+              word: word.word,
+              part_of_speech: document.getElementById('editPartOfSpeech').value.trim(),
+              meaning: document.getElementById('editMeaning').value.trim(),
+              synonym: document.getElementById('editSynonym').value.trim() || '-',
+              antonym: document.getElementById('editAntonym').value.trim() || '-',
+              example_en: document.getElementById('editExampleEn').value.trim() || '-',
+              example_ko: document.getElementById('editExampleKo').value.trim() || '-',
+            };
+    
+            const res = await fetch('http://localhost:3000/api/update-word', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(updated)
+            });
+    
+            const result = await res.json();
+            if (res.ok && result.success) {
+              alert('✅ 수정 완료!');
+              location.reload();
+            } else {
+              alert(`❌ 수정 실패: ${result.error}`);
+            }
+          });
+        });
+      }
+    
+      // 단어 클릭 시 상세페이지 이동
+      row.addEventListener('click', function (e) {
+        if (
+          e.target.classList.contains('delete-btn') ||
+          e.target.classList.contains('edit-btn')
+        ) return;
+    
+        window.location.href = `seemore.html?word=${encodeURIComponent(word.word)}`;
+      });
+    
+      return row;
+    }
+    
+
+  </script>
+</body>
+</html>

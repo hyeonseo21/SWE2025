@@ -1,71 +1,108 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>단어 상세 - TOEIC Vocabulary</title>
-    <link rel="stylesheet" href="style.css"> 
-    <link rel="stylesheet" href="css/vocabulary.css">
-    <link rel="stylesheet" href="css/seemore.css">
+    <meta charset="UTF-8"> <!-- 문서 인코딩을 UTF-8로 설정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 모바일 뷰포트 설정 -->
+    <title>단어 상세 - TOEIC Vocabulary</title> <!-- 브라우저 탭에 표시될 제목 -->
+
+    <!-- 스타일시트 연결 -->
+    <link rel="stylesheet" href="style.css"> <!-- 공통 스타일 -->
+    <link rel="stylesheet" href="css/vocabulary.css"> <!-- 단어장 관련 스타일 -->
+    <link rel="stylesheet" href="css/seemore.css"> <!-- 단어 상세 페이지 전용 스타일 -->
 </head>
 <body>
     <!-- 상단 바 -->
     <nav class="nav-bar">
         <div class="nav-logo">
-            <img src="assets/enpick-logo.png" alt="EnPick 로고" />
-            <h2>EnPick</h2>
+            <img src="assets/enpick-logo.png" alt="EnPick 로고" /> <!-- 로고 이미지 -->
+            <h2>EnPick</h2> <!-- 로고 텍스트 -->
         </div>
         <div class="nav-user">
-            <a href="login.html" class="logout-btn">로그아웃</a>
+            <a href="login.html" class="logout-btn">로그아웃</a> <!-- 로그아웃 버튼 -->
         </div>
     </nav>
 
     <!-- 사이드바 -->
     <div class="sidebar">
+        <!-- 각 메뉴 항목 -->
         <a href="home.html" class="menu-item">홈</a>
-        <a href="vocabulary.html" class="menu-item active">단어장</a>
+        <a href="vocabulary.html" class="menu-item active">단어장</a> <!-- 현재 페이지 강조 -->
         <a href="#" class="menu-item">학습</a>
         <a href="#" class="menu-item">테스트</a>
         <a href="#" class="menu-item">통계</a>
     </div>
 
-    <!-- 메인 콘텐츠, 이걸 txt 파일이나 csv 파일로 읽어오는 코드를 구상할것-->
+    <!-- 메인 콘텐츠 영역 -->
     <div class="main-content">
         <h1>단어 상세</h1>
         <div class="word-detail">
-            <div class="word-header"> <!-- 단어 타이틀부분 -->
-                <h1 class="word-title">example</h1>
-                <div class="word-info">[품사] 의미</div>
+            <!-- 단어 제목과 품사 -->
+            <div class="word-header">
+                <h1 id="word-title" class="word-title"></h1> <!-- 단어명 표시 -->
+                <div id="word-info" class="word-info"></div> <!-- 품사 표시 -->
             </div>
 
-            <div class="meaning-section">    <!-- 단어 의미 부분 -->
+            <!-- 의미 섹션 -->
+            <div class="meaning-section">
                 <h2 class="meaning-title">의미</h2>
-                <p class="meaning-content">
-                    단어의 의미 설명.
-                </p>
+                <p id="meaning-content" class="meaning-content"></p> <!-- 의미 표시 -->
             </div>
 
-            <div class="meaning-section">    <!-- 단어 예문 부분 -->
+            <!-- 예문 섹션 -->
+            <div class="meaning-section">
                 <h2 class="meaning-title">예문</h2>
                 <div class="example">
-                    <p class="example-text">English Examples.</p>
-                    <p class="example-translation">한국어 예문.</p>
-                </div>
-                <div class="example">
-                    <p class="example-text">English Examples.</p>
-                    <p class="example-translation">한국어 예문.</p>
+                    <p id="example-en" class="example-text"></p> <!-- 영어 예문 -->
+                    <p id="example-ko" class="example-translation"></p> <!-- 한글 해석 -->
                 </div>
             </div>
 
-            <div class="meaning-section">    <!-- 단어 관련 단어 부분 -->
+            <!-- 관련 단어 (유의어/반의어) 섹션 -->
+            <div class="meaning-section">
                 <h2 class="meaning-title">관련 단어</h2>
                 <ul>
-                  관련 단어 작성
+                    <li><strong>유의어:</strong> <span id="synonym"></span></li> <!-- 유의어 -->
+                    <li><strong>반의어:</strong> <span id="antonym"></span></li> <!-- 반의어 -->
                 </ul>
             </div>
 
+            <!-- 뒤로가기 버튼 -->
             <a href="vocabulary.html" class="back-button">단어장으로 돌아가기</a>
         </div>
     </div>
+
+    <!-- 단어 정보 로드용 스크립트 -->
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+        // URL 파라미터에서 단어 정보를 가져옴
+        const params = new URLSearchParams(window.location.search);
+        const word = params.get('word');
+
+        if (!word) {
+          alert('단어 정보가 없습니다.');
+          return;
+        }
+
+        try {
+          // 백엔드 API로 단어 정보 요청
+          const response = await fetch(`http://localhost:3000/api/word/${encodeURIComponent(word)}`);
+          if (!response.ok) throw new Error('단어 정보를 가져올 수 없습니다.');
+          const data = await response.json();
+
+          // 응답 받은 데이터를 HTML 요소에 삽입
+          document.getElementById('word-title').textContent = data.word;
+          document.getElementById('word-info').textContent = `[${data.part_of_speech}]`;
+          document.getElementById('meaning-content').textContent = data.meaning;
+          document.getElementById('example-en').textContent = data.example_en;
+          document.getElementById('example-ko').textContent = data.example_ko;
+          document.getElementById('synonym').textContent = data.synonym;
+          document.getElementById('antonym').textContent = data.antonym;
+
+        } catch (error) {
+          console.error('❌ 오류 발생:', error);
+          alert('단어 정보를 불러오지 못했습니다.');
+        }
+      });
+    </script>
 </body>
-</html> 
+</html>
