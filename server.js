@@ -1,51 +1,62 @@
-const express = require('express');
-const mysql = require('mysql2');
-const bcrypt = require('bcryptjs');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const path = require('path');
-const nodemailer = require('nodemailer');
 
-const app = express();
-const port = 3000;
+const express = require('express'); //서버 생성
+const mysql = require('mysql2'); //mysql 연결
+const bcrypt = require('bcryptjs'); //비밀번호 암호화
+const bodyParser = require('body-parser'); //요청 본문 파싱
+const session = require('express-session'); //세션 관리
+const path = require('path'); //파일 경로 처리
+const nodemailer = require('nodemailer'); //이메일 전송
+const fs = require('fs'); //파일 시스템 접근
 
-const resetCodes = {};
+const app = express(); //express 애플리케이션 생성
+const port = 3000; //포트 번호 
 
-const transporter = nodemailer.createTransport({
+const resetCodes = {}; //초기화 코드 저장
+
+const transporter = nodemailer.createTransport({ //이메일 세팅
   service: 'gmail',
   auth: {
-    user: '@gmail.com',
-    pass: ''
+    user: '@gmail.com', //지메일 아이디
+    pass: '' //각자의 지메일 2차 번호
   }
 });
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '../enpick-frontend')));
+app.use(bodyParser.urlencoded({ extended: true })); //요청 본문 파싱으로 이 코드가 없으면 로그인 기능이 작동하지 않음음
+app.use(bodyParser.json()); //요청 본문 파싱으로 이 코드가 없으면 로그인 기능이 작동하지 않음
+
+app.use(express.static(path.join(__dirname, '../fend')));
 app.use(session({
   secret: 'secret-key',
   resave: false,
   saveUninitialized: false
 }));
 
-//MySQL 연결
+// MySQL과 연결
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'qpalzm12!',
+  password: '4971',
   database: 'enpick_db'
 });
 
-db.connect(err => {
+db.connect(err => { //db와 연결
   if (err) throw err;
   console.log('MySQL 연결 성공!');
 });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../enpick-frontend/signup.html'));
+app.get('/', (req, res) => { //local:3000 접속시 진입점을 설정
+  const filePath = 'login.html';
+  const options = { root: path.join(__dirname, '../fend') };
+  
+  res.sendFile(filePath, options, (err) => {
+    if (err) { //오류 점검용
+      console.error('파일 전송 중 오류 발생:', err);
+      res.status(err.status || 500).send('파일을 찾을 수 없거나 서버 오류입니다.');
+    }
+  });
 });
 
-app.post('/signup', async (req, res) => {
+app.post('/signup', async (req, res) => { //회원가입 요청시 실행되는 코드
   const { full_name, email, password } = req.body;
 
   if (!full_name || !email || !password) {
@@ -53,7 +64,7 @@ app.post('/signup', async (req, res) => {
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10); //
     db.query(
       'INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)',
       [full_name, email, hashedPassword],
@@ -71,7 +82,7 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', async (req, res) => { //로그인 요청시 실행
   const { email, password } = req.body;
   try {
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
@@ -96,10 +107,10 @@ app.post('/login', async (req, res) => {
 
 app.get('/home.html', (req, res) => {
   if (!req.session.user) return res.redirect('/login.html');
-  res.sendFile(path.join(__dirname, '../enpick-frontend/home.html'));
+  res.sendFile(path.join(__dirname, '../fend/home.html'));
 });
 
-app.post('/send-reset-code', (req, res) => {
+app.post('/send-reset-code', (req, res) => { //비밀번호 찾기 요청시 실행
   const { email } = req.body;
   const trimmedEmail = (email || '').trim().toLowerCase();
 
@@ -121,7 +132,7 @@ app.post('/send-reset-code', (req, res) => {
     resetCodes[trimmedEmail] = code;
 
     const mailOptions = {
-      from: '@gmail.com',
+      from: 'qus7932@gmail.com',
       to: trimmedEmail,
       subject: 'EnPick Password Reset Code',
       text: `Verification Code: ${code}`
@@ -137,7 +148,7 @@ app.post('/send-reset-code', (req, res) => {
   });
 });
 
-app.post('/verify-code', (req, res) => {
+app.post('/verify-code', (req, res) => { //인증번호 코드 검증 요청시 실행
   const { email, code } = req.body;
 
   if (resetCodes[email] && resetCodes[email] === code) {
@@ -148,7 +159,7 @@ app.post('/verify-code', (req, res) => {
   }
 });
 
-app.post('/reset-password', async (req, res) => {
+app.post('/reset-password', async (req, res) => { //비밀번호 재설정 
   const email = req.body.email;
   const newPassword = req.body.newPassword;
 
@@ -176,7 +187,6 @@ app.post('/reset-password', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
 app.listen(port, () => {
   console.log(`서버가 http://localhost:${port} 에서 실행 중`);
 });
