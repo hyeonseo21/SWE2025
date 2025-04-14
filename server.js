@@ -7,6 +7,7 @@ const session = require('express-session'); //세션 관리
 const path = require('path'); //파일 경로 처리
 const nodemailer = require('nodemailer'); //이메일 전송
 const fs = require('fs'); //파일 시스템 접근
+const cors = require('cors'); //수정됨: 브라우저 보안 정책 충돌로 인해
 
 const app = express(); //express 애플리케이션 생성
 const port = 3000; //포트 번호 
@@ -21,6 +22,8 @@ const transporter = nodemailer.createTransport({ //이메일 세팅
   }
 });
 
+app.use(cors());
+
 app.use(bodyParser.urlencoded({ extended: true })); //요청 본문 파싱으로 이 코드가 없으면 로그인 기능이 작동하지 않음음
 app.use(bodyParser.json()); //요청 본문 파싱으로 이 코드가 없으면 로그인 기능이 작동하지 않음
 
@@ -34,8 +37,9 @@ app.use(session({
 // MySQL과 연결
 const db = mysql.createConnection({
   host: 'localhost',
+  port: 9090,   //수정됨: port번호 3306 아닐경우 추가
   user: 'root',
-  password: '4971',
+  password: '0601dd!@',
   database: 'enpick_db'
 });
 
@@ -82,26 +86,35 @@ app.post('/signup', async (req, res) => { //회원가입 요청시 실행되는 
   }
 });
 
-app.post('/login', async (req, res) => { //로그인 요청시 실행
+app.post('/login', async (req, res) => { //수정됨: 로그인 에러메세지 출력 위해 수정, json방식 이용
   const { email, password } = req.body;
   try {
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
       if (err) throw err;
-      if (results.length === 0) return res.send('Email not found.');
+      if (results.length === 0) {
+        return res.status(401).json({
+          success: false,
+          message: 'Incorrect Email'
+        });
+      }
 
       const user = results[0];
       const match = await bcrypt.compare(password, user.password);
 
       if (match) {
         req.session.user = user;
-        res.redirect('/home.html');
+        res.status(200).json({
+          success: true,
+          role: user.role,
+          name: user.full_name
+        });
       } else {
-        res.send('Incorrect password.');
+        res.status(401).json({ success: false, message: 'Incorrect Password' });
       }
     });
   } catch (e) {
     console.error('Login error:', e);
-    res.status(500).send('Server error.');
+    res.status(500).send({success: false, message: 'Server error.'});
   }
 });
 
@@ -187,6 +200,165 @@ app.post('/reset-password', async (req, res) => { //비밀번호 재설정
     res.status(500).send('Server error');
   }
 });
+
+// 단어장 단어 목록 API (MySQL에서 조회)
+app.get('/api/words', (req, res) => {
+  const query = 'SELECT id, word, part_of_speech, meaning, difficulty FROM word_lists ORDER BY word ASC';
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('단어 DB 조회 오류:', err);
+      return res.status(500).json({ error: 'DB 조회 실패' });
+    }
+    res.json(results);
+  });
+});
+
+app.post('/api/words', (req, res) => {
+  const { word, part_of_speech, meaning, difficulty } = req.body;
+  if (!word || !part_of_speech || !meaning || !difficulty) {
+    return res.status(400).json({ error: '모든 필드를 입력해야 합니다.' });
+  }
+
+  const sql = 'INSERT INTO word_lists (word, part_of_speech, meaning, difficulty) VALUES (?, ?, ?, ?)';
+  db.query(sql, [word, part_of_speech, meaning, difficulty], (err, result) => {
+    if (err) {
+      console.error('단어 추가 오류:', err);
+      return res.status(500).json({ error: '단어 추가 실패' });
+    }
+    res.json({ success: true, id: result.insertId });
+  });
+});
+
+app.put('/api/words/:id', (req, res) => {
+  const { id } = req.params;
+  const { word, part_of_speech, meaning, difficulty } = req.body;
+
+  const sql = 'UPDATE word_lists SET word = ?, part_of_speech = ?, meaning = ?, difficulty = ? WHERE id = ?';
+  db.query(sql, [word, part_of_speech, meaning, difficulty, id], (err, result) => {
+    if (err) {
+      console.error('단어 수정 오류:', err);
+      return res.status(500).json({ error: '수정 실패' });
+    }
+    res.json({ success: true });
+  });
+});
+
+app.delete('/api/words/:id', (req, res) => {
+  const { id } = req.params;
+
+  // 100개 이하 삭제 제한
+  db.query('SELECT COUNT(*) AS count FROM word_lists', (err, results) => {
+    if (err) return res.status(500).json({ error: 'DB 오류' });
+
+    if (results[0].count <= 100) {
+      return res.status(400).json({ error: '100개 이하일 경우 삭제 불가' });
+    }
+
+    db.query('DELETE FROM word_lists WHERE id = ?', [id], (err) => {
+      if (err) return res.status(500).json({ error: '삭제 실패' });
+      res.json({ success: true });
+    });
+  });
+});
+
+app.post('/api/promote', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: '이메일 누락' });
+
+  const sql = 'UPDATE users SET role = "admin" WHERE email = ?';
+  db.query(sql, [email], (err, result) => {
+    if (err) return res.status(500).json({ error: '승격 실패' });
+    if (result.affectedRows === 0) return res.status(404).json({ error: '사용자 없음' });
+    res.json({ success: true });
+  });
+});
+
+
+app.post('/api/demote', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: '이메일 누락' });
+
+  // root 계정은 회수 불가
+  if (email === 'root@enpick.kr') {
+    return res.status(403).json({ error: 'root 계정은 회수할 수 없습니다.' });
+  }
+
+  const sql = 'UPDATE users SET role = "user" WHERE email = ? AND role = "admin"';
+  db.query(sql, [email], (err, result) => {
+    if (err) return res.status(500).json({ error: '회수 실패' });
+    if (result.affectedRows === 0) return res.status(404).json({ error: '해당 관리자 없음' });
+    res.json({ success: true });
+  });
+});
+
+
+app.get('/admin.html', (req, res) => {
+  if (!req.session.user || req.session.user.role !== 'admin') {
+    return res.redirect('/login.html');
+  }
+  res.sendFile(path.join(__dirname, '../fend/admin.html'));
+});
+
+app.get('/api/me', (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: '로그인하지 않았습니다.' });
+  }
+
+  const { id, email, role } = req.session.user;
+  res.json({ id, email, role });
+});
+
+// 상세 정보 가져오기
+app.get('/api/details/:wordId', (req, res) => {
+  const wordId = req.params.wordId;
+  const sql = `SELECT * FROM word_details WHERE word_id = ?`;
+  db.query(sql, [wordId], (err, result) => {
+    if (err) return res.status(500).send('DB 조회 오류');
+    if (result.length === 0) return res.status(404).send('상세 정보 없음');
+    res.json(result[0]);
+  });
+});
+
+// 상세 정보 추가 또는 수정
+app.post('/api/details/:wordId', (req, res) => {
+  const wordId = req.params.wordId;
+  const { synonym, antonym, example, example_kor } = req.body;
+
+  // 먼저 해당 wordId가 이미 존재하는지 확인
+  db.query(`SELECT * FROM word_details WHERE word_id = ?`, [wordId], (err, rows) => {
+    if (err) return res.status(500).send('DB 오류');
+    if (rows.length > 0) {
+      // 업데이트
+      const sql = `
+        UPDATE word_details SET synonym=?, antonym=?, example=?, example_kor=?
+        WHERE word_id=?`;
+      db.query(sql, [synonym, antonym, example, example_kor, wordId], (err, result) => {
+        if (err) return res.status(500).send('업데이트 오류');
+        res.send('수정 완료');
+      });
+    } else {
+      // 새로 추가
+      const sql = `
+        INSERT INTO word_details (word_id, synonym, antonym, example, example_kor)
+        VALUES (?, ?, ?, ?, ?)`;
+      db.query(sql, [wordId, synonym, antonym, example, example_kor], (err, result) => {
+        if (err) return res.status(500).send('삽입 오류');
+        res.send('등록 완료');
+      });
+    }
+  });
+});
+
+app.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) return res.status(500).send('로그아웃 실패');
+    res.clearCookie('connect.sid'); // 쿠키 제거
+    res.send('로그아웃 성공');
+  });
+});
+
+
 app.listen(port, () => {
   console.log(`서버가 http://localhost:${port} 에서 실행 중`);
 });
