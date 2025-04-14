@@ -1,0 +1,168 @@
+/* 검색 섹션 스타일 */
+.search-section {
+  background-color: white;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 25px;
+}
+/* 검색 박스 스타일 */
+.search-box {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  padding: 0 5px;
+}
+/* 검색 입력 박스 스타일 */
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  height: 38px;
+  padding: 0 15px 0 35px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.search-input-wrapper input:focus {
+  border-color: #7d87dc;
+}
+
+.search-input-wrapper::before {
+  content: '🔍';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #666;
+  pointer-events: none;
+}
+/*품사 선택 박스 스타일 */
+.search-box select {
+  height: 38px;
+  padding: 0 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 180px;
+  background-color: white;
+  outline: none;
+  transition: border-color 0.3s;
+  cursor: pointer;
+}
+
+.search-box select:focus {
+  border-color: #7d87dc;
+}
+
+/* 단어 테이블 스타일 */
+.word-table {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.word-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.word-table th {
+  background-color: #f8f9fd;
+  padding: 15px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+.word-table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  color: #666;
+}
+
+.word-table tr:hover {
+  background-color: #f8f9fd;
+}
+
+/* 테이블 컬럼 너비 조정 */
+.word-table th:nth-child(1),
+.word-table td:nth-child(1) {
+  width: 20%;
+}
+
+.word-table th:nth-child(2),
+.word-table td:nth-child(2) {
+  width: 15%;
+}
+
+.word-table th:nth-child(3),
+.word-table td:nth-child(3) {
+  width: 45%;
+}
+
+.word-table th:nth-child(4),
+.word-table td:nth-child(4) {
+  width: 20%;
+}
+
+/* 페이지네이션 스타일 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s;
+  min-width: 40px;
+}
+
+.pagination button:hover {
+  background-color: #7d87dc;
+  color: white;
+  border-color: #7d87dc;
+}
+
+.pagination button.active {
+  background-color: #7d87dc;
+  color: white;
+  border-color: #7d87dc;
+}
+
+.pagination button:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  border-color: #ddd;
+}
+
+/* 메인 콘텐츠 영역 스타일 */
+.main-content {
+  padding: 20px;
+  margin-left: 250px;
+  min-height: calc(100vh - 60px);
+}
+
+.main-content h1 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 24px;
+} 

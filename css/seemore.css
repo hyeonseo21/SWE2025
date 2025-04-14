@@ -1,0 +1,77 @@
+/*단어 상세 페이지 스타일*/
+.word-detail {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.word-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.word-title {
+    font-size: 28px;
+    color: #333;
+    margin: 0;
+}
+/* 우상단 단어정보 스타일 */
+.word-info {
+    color: #666;
+    font-size: 16px;
+}
+/* 의미 스타일 */
+.meaning-section {
+    margin-bottom: 25px;
+}
+
+.meaning-title {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.meaning-content {
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+/* 예문 스타일 */
+.example {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.example-text {
+    color: #333;
+    font-style: italic;
+}
+
+.example-translation {
+    color: #666;
+    margin-top: 5px;
+}
+/* 뒤로가기 버튼 */
+.back-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #4a6bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    transition: background 0.3s;
+}
+
+.back-button:hover {
+    background: #3a5bef;
+}

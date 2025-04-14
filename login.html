@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -28,8 +27,31 @@
         <button type="submit">Login</button>
       </form>
       
-      <p class="bottom-text"><a href="forgot-password.html">Forgot Password?</a></p>
+      <div class="bottom-links">
+        <a href="signup.html">Want Join Us?</a>
+        <span class="divider">|</span>
+        <a href="forgot-password.html">Forgot Password?</a>
+      </div>
     </div>
   </div>
+  <style>
+    .bottom-links {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .bottom-links a {
+      color: #7d87dc;
+      text-decoration: none;
+    }
+    .bottom-links a:hover {
+      text-decoration: underline;
+    }
+    .divider {
+      color: #ccc;
+    }
+  </style>
 </body>
 </html>

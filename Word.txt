@@ -1,0 +1,100 @@
+Word	Part of Speech	Meaning
+abide	verb	따르다, 지키다
+accomplish	verb	성취하다
+accordingly	adverb	그에 따라
+allocate	verb	할당하다
+applicant	noun	지원자
+appreciate	verb	감사하다; 인식하다
+asset	noun	자산
+assign	verb	할당하다
+attendance	noun	출석
+authorize	verb	권한을 부여하다
+benefit	noun	혜택, 이익
+bonus	noun	보너스
+budget	noun	예산
+candidate	noun	후보자
+capacity	noun	수용량
+colleague	noun	동료
+commute	verb	통근하다
+complaint	noun	불만
+confirm	verb	확인하다
+consent	verb	동의하다
+contract	noun	계약
+contribute	verb	기여하다
+convenient	adjective	편리한
+cooperate	verb	협력하다
+criteria	noun	기준
+decline	verb	감소하다; 거절하다
+dedicated	adjective	헌신적인
+defective	adjective	결함이 있는
+delivery	noun	배송
+department	noun	부서
+depreciate	verb	가치가 떨어지다
+dismiss	verb	해고하다
+distribute	verb	분배하다
+donation	noun	기부
+efficient	adjective	효율적인
+employee	noun	직원
+enroll	verb	등록하다
+evaluate	verb	평가하다
+expand	verb	확장하다
+expense	noun	비용
+expertise	noun	전문 지식
+feedback	noun	피드백
+flexible	adjective	유연한
+founder	noun	창립자
+guarantee	verb	보장하다
+implement	verb	실행하다
+income	noun	수입
+inspection	noun	점검, 검사
+inventory	noun	재고
+invoice	noun	송장, 청구서
+job opening	noun	채용 공고
+launch	verb	출시하다
+leave	noun	휴가
+logistics	noun	물류
+mandatory	adjective	의무적인
+margin	noun	수익, 이윤
+meeting	noun	회의
+merger	noun	합병
+negotiate	verb	협상하다
+notify	verb	통보하다
+objective	noun	목표
+order	verb	주문하다
+overtime	noun	초과근무
+participate	verb	참여하다
+performance	noun	성과
+policy	noun	정책
+postpone	verb	연기하다
+profit	noun	이익
+promotion	noun	승진; 홍보
+proposal	noun	제안
+purchase	verb	구매하다
+quarter	noun	분기
+raise	noun	임금 인상
+recruit	verb	채용하다
+refund	noun	환불
+regulation	noun	규정
+reliable	adjective	믿을 수 있는
+representative	noun	대표자
+requirement	noun	요구사항
+resign	verb	사직하다
+responsibility	noun	책임
+retail	noun	소매
+revenue	noun	수익
+salary	noun	급여
+schedule	noun	일정
+shipment	noun	배송물
+strategy	noun	전략
+substitute	verb	대체하다
+supervisor	noun	감독관
+survey	noun	설문 조사
+task	noun	업무
+temporary	adjective	임시의
+transaction	noun	거래
+transfer	verb	이동하다, 전송하다
+update	verb	업데이트하다
+venue	noun	장소
+warehouse	noun	창고
+warranty	noun	보증
+withdraw	verb	철회하다, 인출하다

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TOEIC Vocabulary</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/vocabulary.css">
+</head>
+<body>
+  <!-- 상단 바 -->
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <a href="login.html" class="logout-btn">로그아웃</a>
+    </div>
+  </nav>
+
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <a href="home.html" class="menu-item">홈</a>
+    <a href="vocabulary.html" class="menu-item active">단어장</a>
+    <a href="#" class="menu-item">학습</a>
+    <a href="#" class="menu-item">테스트</a>
+    <a href="#" class="menu-item">통계</a>
+  </div>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="main-content">
+    <h1>단어장</h1>
+
+    <!-- 검색 및 필터 섹션 -->
+    <div class="search-section">
+      <div class="search-box">
+        <div class="search-input-wrapper">
+          <input type="text" placeholder="단어를 입력하세요..." id="searchInput" />
+        </div>
+        <select id="filterType">
+          <option value="all">전체 품사</option>
+          <option value="noun">명사</option>
+          <option value="verb">동사</option>
+          <option value="adjective">형용사</option>
+          <option value="adverb">부사</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 단어 목록 테이블 -->
+    <div class="word-table">
+      <table>
+        <thead>
+          <tr>
+            <th>단어</th>
+            <th>품사</th>
+            <th>의미</th>
+            <th>학습 상태</th>
+          </tr>
+        </thead>
+        <tbody id="wordTableBody">
+          <!-- 자바스크립트로 동적 생성될 부분 -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination">
+      <button>&lt;</button>
+      <button class="active">1</button>
+      <button>2</button>
+      <button>3</button>
+      <button>&gt;</button>
+    </div>
+  </div>
+
+  <script>
+    // 전역 변수 설정
+    let wordData = [];
+    let filteredWords = [];
+    let currentPage = 1;
+    const itemsPerPage = 20;
+
+    // 페이지 로드 시 단어 목록 표시
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Word.txt 파일에서 데이터 읽어오기
+      try {
+        const response = await fetch('Word.txt');
+        const text = await response.text();
+        
+        // 텍스트 파일 파싱
+        const lines = text.split('\n');
+        // 헤더 제거 (첫 번째 줄)
+        lines.shift();
+        
+        // 각 줄을 파싱하여 단어 데이터 생성
+        wordData = lines
+          .filter(line => line.trim() !== '') // 빈 줄 제거
+          .map(line => {
+            const [word, part_of_speech, meaning] = line.split('\t');
+            return {
+              word: word.trim(),
+              part_of_speech: part_of_speech.trim(),
+              meaning: meaning.trim()
+            };
+          });
+
+        filteredWords = [...wordData];
+        displayPage(currentPage);
+      } catch (error) {
+        console.error('단어 데이터를 불러오는 중 오류가 발생했습니다:', error);
+        document.getElementById('wordTableBody').innerHTML = 
+          '<tr><td colspan="4">단어 데이터를 불러오는 중 오류가 발생했습니다. 파일 경로를 확인해주세요.</td></tr>';
+      }
+    });
+
+    // 단어 목록 표시 함수
+    function displayWords(words) {
+      const tableBody = document.getElementById('wordTableBody');
+      tableBody.innerHTML = ''; // 테이블 초기화
+
+      words.forEach(word => {
+        const row = createWordRow(word);
+        tableBody.appendChild(row);
+      });
+    }
+
+    //단어 행 생성 함수
+    function createWordRow(word) { 
+      const row = document.createElement('tr');
+      //<td>미학습</td> 부분 학습 미학습 체크 기능 추가 구현 필요 ?
+      row.innerHTML = `
+        <td>${word.word}</td>
+        <td>${word.part_of_speech}</td>
+        <td>${word.meaning}</td>
+        <td>미학습</td>
+      `;
+      
+      // 단어 클릭 시 seemore.html로 이동
+      row.addEventListener('click', function() {
+        window.location.href = `seemore.html?word=${encodeURIComponent(word.word)}`;
+      });
+      
+      return row;
+    }
+
+    // 페이지 표시 함수
+    function displayPage(page) {
+      currentPage = page;
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageItems = filteredWords.slice(start, end);
+      displayWords(pageItems);
+      
+      const totalPages = Math.ceil(filteredWords.length / itemsPerPage);
+      updatePagination(page, totalPages);
+    }
+    
+    function updatePagination(currentPage, totalPages) {
+      const pagination = document.querySelector('.pagination');
+      pagination.innerHTML = '';
+      
+      // 이전 버튼
+      const prevButton = document.createElement('button');
+      prevButton.textContent = '⟨';
+      prevButton.disabled = currentPage === 1;
+      prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+          displayPage(currentPage - 1);
+        }
+      });
+      pagination.appendChild(prevButton);
+      
+      // 페이지 번호 버튼들
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      
+      if (startPage > 1) {
+        pagination.appendChild(createPageButton(1));
+        if (startPage > 2) pagination.appendChild(createEllipsis());
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pagination.appendChild(createPageButton(i));
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pagination.appendChild(createEllipsis());
+        pagination.appendChild(createPageButton(totalPages));
+      }
+      
+      // 다음 버튼
+      const nextButton = document.createElement('button');
+      nextButton.textContent = '⟩';
+      nextButton.disabled = currentPage === totalPages;
+      nextButton.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          displayPage(currentPage + 1);
+        }
+      });
+      pagination.appendChild(nextButton);
+    }
+    // 페이지 번호 버튼에 반영
+    function createPageButton(pageNum) {
+      const button = document.createElement('button');
+      button.textContent = pageNum;
+      button.classList.toggle('active', pageNum === currentPage);
+      button.addEventListener('click', () => {
+        currentPage = pageNum;
+        displayPage(currentPage);
+      });
+      return button;
+    }
+    // 페이지 번호 많을때 ... 생성 함수
+    function createEllipsis() {
+      const span = document.createElement('span');
+      span.textContent = '...';
+      span.style.margin = '0 8px';
+      return span;
+    }
+    
+    // 검색 기능 설정 함수
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const filterType = document.getElementById('filterType').value;
+      
+      filteredWords = wordData.filter(word => {
+        const matchesSearch = word.word.toLowerCase().includes(searchTerm) || word.meaning.toLowerCase().includes(searchTerm);
+        const matchesFilter = filterType === 'all' || word.part_of_speech === filterType;
+        
+        return matchesSearch && matchesFilter;
+      });
+      
+      currentPage = 1;
+      displayPage(currentPage);
+    });
+    
+    // 품사 필터링 설정 함수
+    const filterType = document.getElementById('filterType');
+    filterType.addEventListener('change', (e) => {
+      const filterValue = e.target.value;
+      const searchTerm = searchInput.value.toLowerCase();
+      
+      filteredWords = wordData.filter(word => {
+        const matchesSearch = word.word.toLowerCase().includes(searchTerm) || word.meaning.toLowerCase().includes(searchTerm);
+        const matchesFilter = filterValue === 'all' || word.part_of_speech === filterValue;
+        
+        return matchesSearch && matchesFilter;
+      });
+      
+      currentPage = 1;
+      displayPage(currentPage);
+    });
+  </script>
+</body>
+</html> 

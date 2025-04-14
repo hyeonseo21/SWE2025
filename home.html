@@ -5,58 +5,133 @@
   <title>EnPick - 홈</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    body {
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f4f6fc;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      position: relative;
     }
-
-    .welcome-container {
-      background-color: white;
-      padding: 60px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      max-width: 500px;
-    }
-
-    .welcome-container h1 {
-      font-size: 32px;
+    /* 타이틀 큰 제목 */
+    .main-content h1 {
+      margin-bottom: 30px;
       color: #333;
-      margin-bottom: 20px;
+      font-size: 24px;
     }
 
-    .welcome-container p {
-      font-size: 18px;
-      color: #555;
+    /* 통계 카드 */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
       margin-bottom: 40px;
     }
 
-    .welcome-container a {
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #7d87dc;
-      color: white;
-      text-decoration: none;
-      border-radius: 30px;
-      font-weight: bold;
-      transition: background-color 0.3s;
+    .stat-card {
+      background-color: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .welcome-container a:hover {
-      background-color: #5c63bd;
+    .stat-card h3 {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .stat-card .number {
+      font-size: 28px;
+      font-weight: bold;
+      color: #7d87dc;
+    }
+
+    /* 오늘의 학습 섹션 */
+    .learning-section {
+      background-color: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .learning-section h2 {
+      color: #333;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stats-container {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="welcome-container">
-    <h1>환영합니다!</h1>
-    <p>EnPick에 오신 것을 환영합니다.<br>이제 토익 단어를 본격적으로 학습해볼까요?</p>
-    <a href="login.html">로그아웃</a>
+  <!-- 상단 바 -->
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <a href="login.html" class="logout-btn">로그아웃</a>
+    </div>
+  </nav>
+
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <a href="home.html" class="menu-item active">홈</a>
+    <a href="vocabulary.html" class="menu-item">단어장</a>
+    <a href="#" class="menu-item">학습</a>
+    <a href="#" class="menu-item">테스트</a>
+    <a href="#" class="menu-item">통계</a>
   </div>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="main-content">
+    <h1>학습 대시보드</h1>
+    
+    <!-- 통계 카드 -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <h3>오늘 학습한 단어</h3>
+        <div class="number">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>누적 학습 단어</h3>
+        <div class="number">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>학습 완료율</h3>
+        <div class="number">0%</div>
+      </div>
+    </div>
+
+    <!-- 학습 영역 -->
+    <div class="learning-section">
+      <h2>오늘의 학습</h2>
+      <!-- 여기에 학습 콘텐츠가 들어갈 예정 -->
+    </div>
+  </div>
+
+  <script>
+    // 사용자 이름 표시
+    document.addEventListener('DOMContentLoaded', () => {
+      // 세션에서 사용자 정보를 가져와서 표시하는 로직이 들어갈 예정
+    });
+  </script>
 </body>
 </html>

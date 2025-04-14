@@ -1,7 +1,106 @@
-body {
+/* 공통 스타일 */
+* {
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #ffffff;
+  background-color: #f4f6fc;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* 상단 바 스타일 */
+.nav-bar {
+  background-color: #7d87dc;
+  color: white;
+  height: 60px;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-logo img {
+  height: 30px;
+}
+
+.nav-logo h2 {
+  margin: 0;
+  font-size: 20px;
+  color: white;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logout-btn {
+  color: white;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 사이드바 스타일 */
+.sidebar {
+  width: 250px;
+  background-color: white;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.menu-item {
+  padding: 12px 15px;
+  margin: 5px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #666;
+  text-decoration: none;
+  display: block;
+}
+
+.menu-item:hover:not(.active) {
+  background-color: #f0f2ff;
+  color: #7d87dc;
+}
+
+.menu-item.active {
+  background-color: #7d87dc;
+  color: white;
+}
+
+/* 메인 콘텐츠 기본 레이아웃 */
+.main-content {
+  margin-left: 250px;
+  margin-top: 60px;
+  padding: 30px;
+  min-height: calc(100vh - 60px);
 }
 
 .container {

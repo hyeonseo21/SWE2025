@@ -1,0 +1,100 @@
+유의어	반의어	예문	해석
+comply, adhere	disobey, defy	Employees must abide by the company’s code of conduct.	직원들은 회사의 행동 강령을 따라야 합니다.
+achieve, fulfill	fail	We can accomplish our goals through teamwork and dedication.	우리는 팀워크와 헌신을 통해 목표를 성취할 수 있습니다.
+consequently, therefore	-	The project timeline has changed; please adjust your schedules accordingly.	프로젝트 일정이 변경되었으니, 그에 따라 일정을 조정해 주세요.
+assign, distribute	withhold	The manager allocated resources to ensure the project's success.	매니저는 프로젝트의 성공을 위해 자원을 할당했습니다.
+candidate, contender	-	Each applicant must submit a resume and cover letter.	각 지원자는 이력서와 자기소개서를 제출해야 합니다.
+value, recognize	disregard, depreciate	I appreciate your hard work on this project.	이 프로젝트에 대한 당신의 노고에 감사드립니다.
+property, resource	liability	Her experience in marketing is a valuable asset to the team.	그녀의 마케팅 경험은 팀에 있어 귀중한 자산입니다.
+allocate, designate	revoke	The teacher assigned a 500-word essay to the students.	교사는 학생들에게 500단어 에세이를 과제로 내주었습니다.
+presence	absence	Attendance at the seminar is mandatory for all employees.	세미나 참석은 모든 직원에게 의무입니다.
+empower, permit	forbid, prohibit	Only the manager is authorized to approve budget changes.	예산 변경을 승인할 수 있는 사람은 매니저뿐입니다.
+advantage, profit	drawback, disadvantage	One benefit of this job is the flexible working hours.	이 직업의 장점 중 하나는 유연한 근무 시간입니다.
+extra, reward	penalty	Employees receive a year-end bonus based on performance.	직원들은 성과에 따라 연말 보너스를 받습니다.
+financial plan	-	The project was completed under budget.	그 프로젝트는 예산 내에서 완료되었습니다.
+applicant, nominee	-	The candidate with the most experience was selected for the position.	가장 많은 경력을 가진 후보자가 해당 직위에 선발되었습니다.
+volume, capability	incapacity	The conference room has a capacity of 100 people.	회의실은 100명을 수용할 수 있습니다.
+coworker, associate	-	She discussed the project with her colleagues.	그녀는 동료들과 프로젝트에 대해 논의했습니다.
+travel, shuttle	-	He commutes to work by train every day.	그는 매일 기차로 출근합니다.
+grievance, objection	compliment	The customer filed a complaint about the service.	고객은 서비스에 대해 불만을 제기했습니다.
+verify, validate	deny, refute	Please confirm your attendance by replying to this email.	이 이메일에 답장하여 참석 여부를 확인해 주세요.
+agree, approve	dissent, refuse	The patient consented to the medical procedure.	환자는 그 의료 시술에 동의했습니다.
+agreement, pact	-	Both parties signed the contract.	양측은 계약서에 서명했습니다.
+donate, provide	withhold	She contributed significantly to the project's success.	그녀는 프로젝트의 성공에 큰 기여를 했습니다.
+handy, accessible	inconvenient	Online shopping is a convenient way to buy goods.	온라인 쇼핑은 물건을 사는 편리한 방법입니다.
+collaborate, assist	resist, hinder	The two companies agreed to cooperate on the new venture.	두 회사는 새로운 사업에 협력하기로 합의했습니다.
+standards, benchmarks	-	The main criteria for selection are experience and qualifications.	선발의 주요 기준은 경력과 자격입니다.
+decrease, refuse	increase, accept	Sales declined by 10% last quarter.	지난 분기 매출이 10% 감소했습니다.
+devoted, committed	indifferent	She is a dedicated employee who always goes the extra mile.	그녀는 언제나 최선을 다하는 헌신적인 직원입니다.
+faulty, flawed	perfect, sound	The company recalled the defective products.	그 회사는 결함 있는 제품을 리콜했습니다.
+shipment, distribution	-	The delivery is scheduled for tomorrow.	배송은 내일로 예정되어 있습니다.
+division, section	-	He works in the marketing department.	그는 마케팅 부서에서 근무합니다.
+devalue, diminish	appreciate	New cars depreciate quickly in value.	신차는 가치가 빠르게 떨어집니다.
+fire, discharge	hire, employ	The employee was dismissed for misconduct.	그 직원은 비행으로 해고되었습니다.
+allocate, dispense	collect, hoard	The manager distributed the tasks among the team members.	매니저는 팀원들에게 업무를 분배했습니다.
+contribution, gift	-	They made a generous donation to the charity.	그들은 자선단체에 관대한 기부를 했습니다.
+effective, productive	inefficient	The new system is more efficient than the old one.	새 시스템은 기존 시스템보다 더 효율적입니다.
+worker, staff member	employer	The company has over 500 employees.	그 회사는 500명 이상의 직원을 보유하고 있습니다.
+register, sign up	withdraw	She enrolled in a business English course.	그녀는 비즈니스 영어 수업에 등록했습니다.
+assess, appraise	-	The teacher will evaluate the students' performances.	교사는 학생들의 성과를 평가할 것입니다.
+enlarge, extend	contract, shrink	The company plans to expand into new markets.	그 회사는 새로운 시장으로 확장할 계획입니다.
+cost, expenditure	income, revenue	Travel expenses will be reimbursed.	여행 경비는 환급될 것입니다.
+skill, proficiency	incompetence	His expertise in finance is highly valued.	그의 금융 분야 전문성은 높이 평가됩니다.
+response, critique	-	We appreciate your feedback on our services.	저희 서비스에 대한 귀하의 피드백에 감사드립니다.
+adaptable, pliable	rigid, inflexible	The company offers flexible working hours.	그 회사는 유연한 근무 시간을 제공합니다.
+originator, initiator	-	She is the founder of the tech startup.	그녀는 그 기술 스타트업의 창립자입니다.
+assure, warrant	-	The product is guaranteed for one year.	그 제품은 1년 동안 보장됩니다.
+execute, carry out	neglect	The company will implement the new policy next month.	회사는 다음 달에 새로운 정책을 시행할 것입니다.
+earnings, revenue	expenditure	His main source of income is his salary.	그의 주요 수입원은 급여입니다.
+examination, scrutiny	-	Regular inspections are conducted to ensure safety.	안전을 보장하기 위해 정기 점검이 실시됩니다.
+stock, supply	-	The store is taking inventory this week.	그 상점은 이번 주에 재고 조사를 진행하고 있습니다.
+bill, statement	-	Please send the invoice to the accounting department.	청구서를 회계 부서로 보내 주세요.
+vacancy, employment opportunity	-	There is a job opening in the IT department.	IT 부서에 채용 공고가 있습니다.
+initiate, introduce	cease, terminate	The company will launch a new product next month.	그 회사는 다음 달에 신제품을 출시할 예정입니다.
+vacation, absence	-	She is on maternity leave for three months.	그녀는 세 달 동안 출산 휴가 중입니다.
+coordination, supply chain	-	We need to coordinate the logistics for the event.	우리는 행사 물류를 조정할 필요가 있습니다.
+compulsory, obligatory	optional, voluntary	Safety training is mandatory for all employees.	안전 교육은 모든 직원에게 의무입니다.
+profit, difference	loss	The company operates on a small profit margin.	그 회사는 적은 이윤으로 운영됩니다.
+conference, assembly	-	The weekly team meeting starts at 9 a.m.	주간 팀 회의는 오전 9시에 시작합니다.
+amalgamation, consolidation	split, division	The merger between the two companies was finalized last year.	그 두 회사 간의 합병은 작년에 완료되었습니다.
+bargain, discuss	-	They negotiated a better contract with the supplier.	그들은 공급업체와 더 나은 계약을 협상했습니다.
+inform, announce	conceal	Please notify us of any schedule changes.	일정 변경 사항이 있다면 알려주세요.
+goal, aim	-	Our main objective is to improve customer satisfaction.	우리의 주요 목표는 고객 만족도를 향상시키는 것입니다.
+request, command	cancel	We ordered new office furniture last week.	우리는 지난주에 새 사무용 가구를 주문했습니다.
+extra hours	-	Employees are paid extra for working overtime.	직원들은 초과 근무에 대해 추가 급여를 받습니다.
+engage, take part	abstain	All team members are encouraged to participate in the discussion.	모든 팀원들이 토론에 참여하도록 격려받습니다.
+achievement, execution	-	Her performance this quarter exceeded expectations.	그녀의 이번 분기 성과는 기대를 초과했습니다.
+strategy, guideline	-	The company has a strict no-smoking policy.	그 회사는 엄격한 금연 정책을 가지고 있습니다.
+delay, defer	advance, expedite	The meeting has been postponed until Friday.	회의는 금요일로 연기되었습니다.
+gain, earnings	loss	The business showed a significant profit last year.	그 사업은 작년에 상당한 이익을 냈습니다.
+advancement, advertising	demotion	He got a promotion to team leader.	그는 팀장으로 승진했습니다.
+suggestion, plan	-	They submitted a proposal for the new project.	그들은 새로운 프로젝트에 대한 제안서를 제출했습니다.
+buy, acquire	sell	You can purchase supplies from the online store.	온라인 상점에서 용품을 구매할 수 있습니다.
+trimester, fourth	-	Sales increased in the first quarter of the year.	올해 1분기 매출이 증가했습니다.
+increase, increment	reduction	She received a raise after her annual review.	그녀는 연간 평가 후 임금 인상을 받았습니다.
+hire, employ	dismiss	The company is recruiting new engineers.	그 회사는 새로운 엔지니어를 채용 중입니다.
+reimbursement, repayment	-	You can get a full refund within 30 days.	30일 이내에 전액 환불이 가능합니다.
+rule, directive	-	We must comply with government regulations.	우리는 정부 규정을 준수해야 합니다.
+dependable, trustworthy	unreliable	He is one of the most reliable employees.	그는 가장 믿을 수 있는 직원 중 한 명입니다.
+delegate, agent	-	The customer service representative helped me quickly.	고객 서비스 담당자가 신속하게 도와줬습니다.
+prerequisite, necessity	-	Knowledge of Excel is a job requirement.	엑셀에 대한 지식은 직무 요건입니다.
+quit, step down	remain	She resigned from her position due to health issues.	그녀는 건강상의 이유로 직위에서 사직했습니다.
+duty, obligation	irresponsibility	It's your responsibility to meet the deadline.	마감일을 지키는 것은 당신의 책임입니다.
+selling, merchandising	wholesale	The product will be available in retail stores soon.	그 제품은 곧 소매점에서 구입할 수 있습니다.
+income, turnover	expenditure	The company’s revenue doubled this year.	그 회사의 수익은 올해 두 배로 늘었습니다.
+pay, wages	-	He receives a monthly salary of $3,000.	그는 매달 3,000달러의 급여를 받습니다.
+timetable, agenda	-	Let’s review the project schedule.	프로젝트 일정을 검토합시다.
+delivery, consignment	-	The shipment arrived on time.	배송물이 제시간에 도착했습니다.
+plan, tactic	-	We need a new marketing strategy.	우리는 새로운 마케팅 전략이 필요합니다.
+replace, swap	retain	You can substitute sugar with honey in this recipe.	이 레시피에서 설탕을 꿀로 대체할 수 있습니다.
+manager, overseer	subordinate	The supervisor will evaluate your progress.	감독관이 당신의 진행 상황을 평가할 것입니다.
+questionnaire, poll	-	We conducted a customer satisfaction survey.	우리는 고객 만족도 조사를 실시했습니다.
+duty, assignment	-	Your task is to complete the report by noon.	당신의 업무는 정오까지 보고서를 완성하는 것입니다.
+interim, provisional	permanent	She has a temporary contract until July.	그녀는 7월까지 임시 계약직입니다.
+deal, exchange	-	The transaction was completed securely.	그 거래는 안전하게 완료되었습니다.
+relocate, reassign	retain	He was transferred to the Seoul branch.	그는 서울 지점으로 전근되었습니다.
+refresh, revise	obsolete	Please update the software regularly.	소프트웨어를 정기적으로 업데이트해 주세요.
+location, site	-	The conference will be held at a new venue.	그 회의는 새로운 장소에서 열릴 예정입니다.
+storage facility, depot	-	The goods are stored in the warehouse.	물품은 창고에 보관되어 있습니다.
+guarantee, assurance	-	The product comes with a one-year warranty.	그 제품은 1년 보증이 제공됩니다.
+retract, remove	submit	She withdrew her application for the position.	그녀는 그 직위에 대한 지원을 철회했습니다.

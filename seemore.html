@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>단어 상세 - TOEIC Vocabulary</title>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="css/vocabulary.css">
+    <link rel="stylesheet" href="css/seemore.css">
+</head>
+<body>
+    <!-- 상단 바 -->
+    <nav class="nav-bar">
+        <div class="nav-logo">
+            <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+            <h2>EnPick</h2>
+        </div>
+        <div class="nav-user">
+            <a href="login.html" class="logout-btn">로그아웃</a>
+        </div>
+    </nav>
+
+    <!-- 사이드바 -->
+    <div class="sidebar">
+        <a href="home.html" class="menu-item">홈</a>
+        <a href="vocabulary.html" class="menu-item active">단어장</a>
+        <a href="#" class="menu-item">학습</a>
+        <a href="#" class="menu-item">테스트</a>
+        <a href="#" class="menu-item">통계</a>
+    </div>
+
+    <!-- 메인 콘텐츠, 이걸 txt 파일이나 csv 파일로 읽어오는 코드를 구상할것-->
+    <div class="main-content">
+        <h1>단어 상세</h1>
+        <div class="word-detail">
+            <div class="word-header"> <!-- 단어 타이틀부분 -->
+                <h1 class="word-title">example</h1>
+                <div class="word-info">[품사] 의미</div>
+            </div>
+
+            <div class="meaning-section">    <!-- 단어 의미 부분 -->
+                <h2 class="meaning-title">의미</h2>
+                <p class="meaning-content">
+                    단어의 의미 설명.
+                </p>
+            </div>
+
+            <div class="meaning-section">    <!-- 단어 예문 부분 -->
+                <h2 class="meaning-title">예문</h2>
+                <div class="example">
+                    <p class="example-text">English Examples.</p>
+                    <p class="example-translation">한국어 예문.</p>
+                </div>
+                <div class="example">
+                    <p class="example-text">English Examples.</p>
+                    <p class="example-translation">한국어 예문.</p>
+                </div>
+            </div>
+
+            <div class="meaning-section">    <!-- 단어 관련 단어 부분 -->
+                <h2 class="meaning-title">관련 단어</h2>
+                <ul>
+                  관련 단어 작성
+                </ul>
+            </div>
+
+            <a href="vocabulary.html" class="back-button">단어장으로 돌아가기</a>
+        </div>
+    </div>
+</body>
+</html> 
