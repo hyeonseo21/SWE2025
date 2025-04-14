@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TOEIC Vocabulary</title>
+  <title>EnPick - TOEIC Vocabulary</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/vocabulary.css">
 </head>
@@ -15,7 +15,7 @@
       <h2>EnPick</h2>
     </div>
     <div class="nav-user">
-      <a href="login.html" class="logout-btn">로그아웃</a>
+      <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
     </div>
   </nav>
 
@@ -38,6 +38,12 @@
         <div class="search-input-wrapper">
           <input type="text" placeholder="단어를 입력하세요..." id="searchInput" />
         </div>
+        <select id="filterDifficulty"> <!-- 추가된 난이도 필터 -->
+          <option value="all">전체 난이도</option>
+          <option value="800">800</option>
+          <option value="700">700</option>
+          <option value="600">600</option>
+        </select>
         <select id="filterType">
           <option value="all">전체 품사</option>
           <option value="noun">명사</option>
@@ -53,10 +59,12 @@
       <table>
         <thead>
           <tr>
+            <th>난이도</th>
             <th>단어</th>
             <th>품사</th>
             <th>의미</th>
             <th>학습 상태</th>
+            <th>학습하기</th>
           </tr>
         </thead>
         <tbody id="wordTableBody">
@@ -84,35 +92,65 @@
 
     // 페이지 로드 시 단어 목록 표시
     document.addEventListener('DOMContentLoaded', async () => {
-      // Word.txt 파일에서 데이터 읽어오기
-      try {
-        const response = await fetch('Word.txt');
-        const text = await response.text();
-        
-        // 텍스트 파일 파싱
-        const lines = text.split('\n');
-        // 헤더 제거 (첫 번째 줄)
-        lines.shift();
-        
-        // 각 줄을 파싱하여 단어 데이터 생성
-        wordData = lines
-          .filter(line => line.trim() !== '') // 빈 줄 제거
-          .map(line => {
-            const [word, part_of_speech, meaning] = line.split('\t');
-            return {
-              word: word.trim(),
-              part_of_speech: part_of_speech.trim(),
-              meaning: meaning.trim()
-            };
-          });
 
+      // 로그인 상태 확인 (세션 기반)
+      try {
+        const res = await fetch('/api/me', { credentials: 'include' });
+        if (!res.ok) throw new Error();
+        const user = await res.json();
+
+        // 예시로 사용자 이메일 표시
+        const userSpan = document.createElement('span');
+        userSpan.textContent = `${user.email}님`;
+        document.querySelector('.nav-user')?.prepend(userSpan);
+
+        if (user.role === 'admin') {
+          const adminBtn = document.createElement('a');
+          adminBtn.href = 'admin.html';
+          adminBtn.className = 'logout-btn';
+          adminBtn.textContent = '관리자 페이지';
+          document.querySelector('.nav-user')?.prepend(adminBtn);
+        }
+
+      } catch (err) {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        try {
+          await fetch('/logout', {
+            method: 'POST',
+            credentials: 'include'
+          });
+        } catch (err) {
+          console.error('서버 로그아웃 실패:', err);
+        }
+
+        // localStorage 정보 삭제
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userRole');
+
+        // 로그인 페이지로 이동
+        window.location.href = 'login.html';
+      });
+
+
+      // Word.txt 파일에서 데이터 읽어오기
+      // DB에서 단어 목록 읽어오기 (API 호출)
+      try {
+        const response = await fetch('/api/words');
+        const json = await response.json();
+        wordData = json;
         filteredWords = [...wordData];
         displayPage(currentPage);
       } catch (error) {
         console.error('단어 데이터를 불러오는 중 오류가 발생했습니다:', error);
         document.getElementById('wordTableBody').innerHTML = 
-          '<tr><td colspan="4">단어 데이터를 불러오는 중 오류가 발생했습니다. 파일 경로를 확인해주세요.</td></tr>';
+          '<tr><td colspan="4">단어 데이터를 불러오는 중 오류가 발생했습니다. 서버 상태를 확인해주세요.</td></tr>';
       }
+
     });
 
     // 단어 목록 표시 함수
@@ -127,23 +165,28 @@
     }
 
     //단어 행 생성 함수
-    function createWordRow(word) { 
+    function createWordRow(word) {
       const row = document.createElement('tr');
-      //<td>미학습</td> 부분 학습 미학습 체크 기능 추가 구현 필요 ?
       row.innerHTML = `
+        <td>${word.difficulty}</td>
         <td>${word.word}</td>
         <td>${word.part_of_speech}</td>
         <td>${word.meaning}</td>
         <td>미학습</td>
+        <td>
+          <button class="study-btn" onclick="showStudyOptions(${word.id})">학습하기</button>
+        </td>
       `;
-      
-      // 단어 클릭 시 seemore.html로 이동
-      row.addEventListener('click', function() {
-        window.location.href = `seemore.html?word=${encodeURIComponent(word.word)}`;
+
+      row.addEventListener('click', (e) => {
+        if (e.target.classList.contains('study-btn') || e.target.classList.contains('study-sub-btn')) return;
+        window.location.href = `seemore.html?wordId=${word.id}`;
       });
-      
+
       return row;
     }
+
+
 
     // 페이지 표시 함수
     function displayPage(page) {
@@ -219,40 +262,60 @@
       span.style.margin = '0 8px';
       return span;
     }
+
+    let openedStudyRow = null;
+
+    function showStudyOptions(wordId) {
+      // 기존 열린 행 제거
+      if (openedStudyRow) {
+        openedStudyRow.remove();
+        openedStudyRow = null;
+      }
+
+      const row = Array.from(document.querySelectorAll('#wordTableBody tr')).find(r => {
+        return r.querySelector('button.study-btn')?.getAttribute('onclick')?.includes(`${wordId}`);
+      });
+
+      if (!row) return;
+
+      const studyRow = document.createElement('tr');
+      studyRow.innerHTML = `
+        <td colspan="6" style="text-align: left; padding: 10px;">
+          <button class="study-sub-btn">📘 매일 테스트</button>
+          <button class="study-sub-btn">🎮 단어 게임</button>
+        </td>
+      `;
+      row.after(studyRow);
+      openedStudyRow = studyRow;
+    }
     
     // 검색 기능 설정 함수
     const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      const filterType = document.getElementById('filterType').value;
-      
-      filteredWords = wordData.filter(word => {
-        const matchesSearch = word.word.toLowerCase().includes(searchTerm) || word.meaning.toLowerCase().includes(searchTerm);
-        const matchesFilter = filterType === 'all' || word.part_of_speech === filterType;
-        
-        return matchesSearch && matchesFilter;
-      });
-      
-      currentPage = 1;
-      displayPage(currentPage);
-    });
-    
-    // 품사 필터링 설정 함수
     const filterType = document.getElementById('filterType');
-    filterType.addEventListener('change', (e) => {
-      const filterValue = e.target.value;
-      const searchTerm = searchInput.value.toLowerCase();
-      
+    const filterDifficulty = document.getElementById('filterDifficulty');
+
+    // 이벤트 리스너 등록
+    searchInput.addEventListener('input', applyFilters);
+    filterDifficulty.addEventListener('change', applyFilters);
+    filterType.addEventListener('change', applyFilters);
+
+    // 필터 함수 정의
+    function applyFilters() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      const difficultyValue = filterDifficulty.value;
+      const typeValue = filterType.value;
+
       filteredWords = wordData.filter(word => {
         const matchesSearch = word.word.toLowerCase().includes(searchTerm) || word.meaning.toLowerCase().includes(searchTerm);
-        const matchesFilter = filterValue === 'all' || word.part_of_speech === filterValue;
-        
-        return matchesSearch && matchesFilter;
+        const matchesDifficulty = difficultyValue === 'all' || word.difficulty == parseInt(difficultyValue);
+        const matchesType = typeValue === 'all' || word.part_of_speech === typeValue;
+
+        return matchesSearch && matchesType && matchesDifficulty;
       });
-      
+
       currentPage = 1;
       displayPage(currentPage);
-    });
+    }
   </script>
 </body>
 </html> 

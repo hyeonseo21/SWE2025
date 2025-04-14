@@ -87,8 +87,10 @@
       <h2>EnPick</h2>
     </div>
     <div class="nav-user">
+      <!-- 관리자 계정만 표시되는 추가 버튼 -->
       <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
     </div>
+
   </nav>
 
   <!-- 사이드바 -->
@@ -128,19 +130,56 @@
   </div>
 
   <script>
-    if (localStorage.getItem('isLoggedIn') !== 'true') {
-      alert('로그인 후 이용할 수 있습니다.');
-      window.location.href = 'login.html';
-    }
     // 사용자 이름 표시
     document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('logoutBtn').addEventListener('click', (e) => {   //로그아웃시 isLoggedIn 저장 해제
+
+      fetch('/api/me', { credentials: 'include' })
+        .then(res => {
+          if (!res.ok) throw new Error();
+          return res.json();
+        })
+        .then(user => {
+          // 예: 사용자 이메일 표시
+          const userSpan = document.createElement('span');
+          userSpan.textContent = `${user.email}님`;
+          document.querySelector('.nav-user')?.prepend(userSpan);
+
+          // 관리자면 버튼 보이기
+          if (user.role === 'admin') {
+            const adminBtn = document.createElement('a');
+            adminBtn.href = 'admin.html';
+            adminBtn.className = 'logout-btn';
+            adminBtn.textContent = '관리자 페이지';
+            document.querySelector('.nav-user')?.prepend(adminBtn);
+          }
+        })
+        .catch(() => {
+          alert('로그인이 필요합니다.');
+          window.location.href = 'login.html';
+        });
+
+      // 로그아웃 버튼
+      document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        try {
+          await fetch('/logout', {
+            method: 'POST',
+            credentials: 'include'
+          });
+        } catch (err) {
+          console.error('서버 로그아웃 실패:', err);
+        }
+
+        // localStorage 정보 삭제
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userRole');
+
+        // 로그인 페이지로 이동
         window.location.href = 'login.html';
       });
+
       // 세션에서 사용자 정보를 가져와서 표시하는 로직이 들어갈 예정
     });
+
   </script>
 </body>
 </html>

@@ -1,5 +1,4 @@
-/* ================= 검색 섹션 ================= */
-
+/* 검색 섹션 스타일 */
 .search-section {
   background-color: white;
   padding: 15px;
@@ -7,14 +6,14 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   margin-bottom: 25px;
 }
-
+/* 검색 박스 스타일 */
 .search-box {
   display: flex;
   gap: 15px;
   align-items: center;
   padding: 0 5px;
 }
-
+/* 검색 입력 박스 스타일 */
 .search-input-wrapper {
   position: relative;
   flex: 1;
@@ -45,7 +44,7 @@
   color: #666;
   pointer-events: none;
 }
-
+/*품사 선택 박스 스타일 */
 .search-box select {
   height: 38px;
   padding: 0 15px;
@@ -63,8 +62,7 @@
   border-color: #7d87dc;
 }
 
-/* ================= 단어 테이블 ================= */
-
+/* 단어 테이블 스타일 */
 .word-table {
   background-color: white;
   border-radius: 12px;
@@ -97,6 +95,7 @@
   background-color: #f8f9fd;
 }
 
+/* 테이블 컬럼 너비 조정 */
 .word-table th:nth-child(1),
 .word-table td:nth-child(1) {
   width: 20%;
@@ -117,8 +116,7 @@
   width: 20%;
 }
 
-/* ================= 페이지네이션 ================= */
-
+/* 페이지네이션 스타일 */
 .pagination {
   display: flex;
   justify-content: center;
@@ -156,8 +154,7 @@
   border-color: #ddd;
 }
 
-/* ================= 메인 콘텐츠 ================= */
-
+/* 메인 콘텐츠 영역 스타일 */
 .main-content {
   padding: 20px;
   margin-left: 250px;
@@ -168,134 +165,25 @@
   margin-bottom: 20px;
   color: #333;
   font-size: 24px;
+} 
+
+.selected-row {
+  background-color: #eef1ff !important;
 }
 
-/* ================= 상단 네비게이션 ================= */
-
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.study-btn {
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
   background-color: #7d87dc;
-  padding: 0.8rem 2rem;
   color: white;
-}
-
-.nav-left,
-.nav-center,
-.nav-right {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.nav-center {
-  flex: 1;
-  justify-content: center;
-}
-
-/* ================= 관리자 인증 폼 ================= */
-
-/*.admin-auth-form {
-  display: none;
-}*/
-
-.admin-auth-form.show {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* 🔐 아이콘을 input에서 분리해서 왼쪽에 고정 */
-#adminPasswordInput {
-  height: 38px;
-  padding: 0 10px 0 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-}
-
-#adminPasswordInput::placeholder {
-  padding-left: 0;
-}
-
-.admin-auth-form .lock-icon {
-  font-size: 18px;
-  margin-right: -5px;
-  margin-left: 4px;
-  color: black;
-}
-
-/* 관리자 인증 확인 버튼 */
-#adminAuthBtn {
-  padding: 6px 12px;
-  background-color: #4f46e5;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  height: 38px;
-}
-
-/* 관리자 버튼 */
-.admin-btn {
-  padding: 6px 12px;
-  background-color: #5f5cd8;
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  height: 38px;
-}
-
-/* 로그아웃 버튼 */
-.logout-btn {
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 1rem;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-/* ================= 로고 ================= */
-
-.nav-left .logo {
-  height: 35px;
-  width: auto;
-  margin-right: 0.5rem;
-  margin-top: -10px;
-}
-
-/* ================= 삭제/수정 버튼 ================= */
-
-.delete-btn {
-  margin-left: 0.5rem;
-  background: none;
   border: none;
   cursor: pointer;
-  color: red;
-  font-size: 1rem;
+  white-space: nowrap; /* 줄바꿈 방지 */
 }
 
-.edit-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
+.study-btn:hover {
+  background-color: #5c63bd;
 }
 
-.edit-form input {
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  flex: 1;
-}
 
-.edit-form button {
-  padding: 6px 12px;
-  background-color: #6a65d8;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}

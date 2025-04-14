@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>EnPick - 관리자 페이지</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    html {
+      scroll-padding-top: 80px; /* 상단 바 높이만큼 위쪽 여백 확보 */
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6fc;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      margin-left: 200px;
+      padding: 40px;
+    }
+
+    .main-content h1 {
+      margin-bottom: 40px; /* "관리자 페이지" 문구와 그 아래 박스 사이 여백 추가 */
+    }
+
+    .admin-section {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 40px;
+    }
+
+    .admin-section h2 {
+      font-size: 20px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .admin-section form,
+    .admin-section .user-promotion {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .admin-section input {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .admin-section button {
+      background-color: #7d87dc;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .admin-section button:hover {
+      background-color: #5c63bd;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      text-align: center;
+    }
+
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #7d87dc; /* 수정: 상단 바 색상 */
+      padding: 10px 30px;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-logo img {
+      height: 36px;
+      margin-right: 12px;
+    }
+
+    .nav-logo h2 {
+      font-size: 20px;
+      color: white;
+    }
+
+    .nav-user .logout-btn {
+      background-color: white;
+      color: #7d87dc;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .nav-user .logout-btn:hover {
+      background-color: #dfe2ff;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 200px;
+      height: calc(100% - 60px);
+      background-color: white;
+      padding: 20px;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    }
+
+    .menu-item {
+      display: block;
+      margin-bottom: 16px;
+      color: #333;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .menu-item:hover,
+    .menu-item.active {
+      color: #7d87dc;
+      font-weight: bold;
+    }
+
+    .page-btn {
+      margin: 0 4px;
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      background-color: white;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .page-btn:hover {
+      background-color: #f0f0f0;
+    }
+
+    .page-btn.active {
+      font-weight: bold;
+      background-color: #dfe2ff;
+      color: #333;
+    }
+
+  </style>
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <a href="home.html" class="logout-btn">홈으로 돌아가기</a>
+    </div>
+  </nav>
+
+  <div class="sidebar">
+    <a href="#add" class="menu-item">단어 추가</a>
+    <a href="#editWords" class="menu-item">단어 수정·삭제</a>
+    <a href="#list" class="menu-item">단어 목록</a>
+    <a href="#promote" class="menu-item">관리자 권한 부여</a>
+    <a href="#demote" class="menu-item">관리자 권한 회수</a>
+  </div>
+
+  <div class="main-content">
+    <h1>관리자 페이지</h1>
+
+    <div id="add" class="admin-section">
+      <h2>단어 추가</h2>
+      <form id="addWordForm" style="display: flex; flex-direction: column; gap: 20px; align-items: flex-start;">
+
+        <label style="font-weight: bold;">필수 항목:</label>
+        <div style="display: flex; gap: 12px; width: 100%;">
+          <input type="text" name="word" placeholder="단어" required style="flex: 1;" />
+          <input type="text" name="part_of_speech" placeholder="품사 (noun, verb 등)" required style="flex: 1;" />
+          <input type="text" name="meaning" placeholder="뜻 (한글)" required style="flex: 2;" />
+          <input type="text" name="difficulty" placeholder="난이도" required style="flex: 1;" />
+        </div>
+      
+        <label style="font-weight: bold;">선택 항목:</label>
+        <div style="display: flex; gap: 12px; width: 100%;">
+          <input type="text" name="synonym" placeholder="유의어 (선택)" style="flex: 1;" />
+          <input type="text" name="antonym" placeholder="반의어 (선택)" style="flex: 1;" />
+          <input type="text" name="example" placeholder="예문 (선택)" style="flex: 2;" />
+          <input type="text" name="example_kor" placeholder="예문 해석 (선택)" style="flex: 2;" />
+        </div>
+      
+        <button type="submit" style="margin-top: 10px;">추가</button>
+      </form>
+      
+    </div>
+
+    <div class="csv-upload-section admin-section">
+      <h2>CSV 업로드로 단어 추가</h2>
+      <p>UTF-8로 인코딩된 csv파일 업로드해야 함.</p> 
+      <br>
+      <input type="file" id="csvFileInput" accept=".csv" />
+      <button onclick="uploadCSV()">업로드</button>
+    </div>    
+
+    <!-- 단어 수정 -->
+    <div id="editWords" class="admin-section">
+      <h2>단어 수정 · 삭제</h2>
+      <p>수정 : 목록에서 직접 내용을 수정하고 '수정' 버튼을 클릭하세요.</p>
+      <p>삭제 : 삭제할 단어 행의 '삭제' 버튼을 클릭하세요.</p>
+    </div>
+
+    <div id="list" class="admin-section">
+      <h2>단어 목록</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <input type="text" id="searchInput" placeholder="단어 검색" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; width: 300px;" />
+        <button id="deleteSelectedBtn" style="background-color: #7d87dc; color: white; font-weight: bold; padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer;">
+          선택한 단어 삭제
+        </button>
+      </div>
+      <table id="wordTable">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAll" /></th>
+            <th>영어</th>
+            <th>품사</th>
+            <th>뜻</th>
+            <th>수정</th>
+            <th>삭제</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+    </div>
+
+    <div id="promote" class="admin-section">
+      <h2>관리자 권한 부여</h2>
+      <div class="user-promotion">
+        <input type="text" placeholder="사용자 이메일 입력" id="promoteEmail" />
+        <button id="promoteBtn">승격</button>
+      </div>
+    </div>
+
+    <div id="demote" class="admin-section">
+      <h2>관리자 권한 회수</h2>
+      <div class="user-demotion">
+        <input type="text" placeholder="관리자 이메일 입력" id="demoteEmail" />
+        <button id="demoteBtn">회수</button>
+      </div>
+    </div>    
+  </div>
+
+  <script>
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetch('/api/me', { credentials: 'include' })
+        .then(res => {
+          if (!res.ok) throw new Error();
+          return res.json();
+        })
+        .then(user => {
+          if (user.role !== 'admin') {
+            alert('관리자만 접근할 수 있습니다.');
+            window.location.href = 'login.html';
+          }
+
+          const span = document.createElement('span');
+          span.textContent = `${user.email}님`;
+          document.querySelector('.nav-user')?.prepend(span);
+        })
+        .catch(() => {
+          alert('로그인이 필요합니다.');
+          window.location.href = 'login.html';
+        });
+    });
+  
+    document.getElementById('addWordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      // 유효성 검사
+      if (!data.word || !data.part_of_speech || !data.meaning) {
+        return alert('단어, 품사, 뜻은 필수입니다.');
+      }
+
+      try {
+        // 1. 단어 등록 (/api/words)
+        const resWord = await fetch('/api/words', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            word: data.word,
+            part_of_speech: data.part_of_speech,
+            meaning: data.meaning,
+            difficulty: data.difficulty
+          })
+        });
+
+        if (!resWord.ok) {
+          return alert('단어 추가 실패');
+        }
+
+        const result = await resWord.json();
+        const wordId = result.id;
+
+        // 2. 세부 정보 등록 (/api/details/:id)
+        const resDetails = await fetch(`/api/details/${wordId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            synonym: data.synonym || '',
+            antonym: data.antonym || '',
+            example: data.example || '',
+            example_kor: data.example_kor || ''
+          })
+        });
+
+        if (!resDetails.ok) {
+          return alert('세부 정보 추가 실패');
+        }
+
+        alert(`단어 "${data.word}"가 성공적으로 추가되었습니다.`);
+        form.reset();
+        loadWords();
+
+      } catch (err) {
+        console.error('단어 추가 중 오류:', err);
+        alert('오류가 발생했습니다.');
+      }
+    });
+    
+    let allWords = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
+    async function loadWords() {
+      const res = await fetch('/api/words');
+      allWords = await res.json();
+      renderTable(); // 목록 렌더링
+      renderPagination(); // 페이지 버튼 렌더링
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector('#wordTable tbody');
+      tbody.innerHTML = '';
+
+      // 검색 필터 적용
+      const keyword = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allWords.filter(word => word.word.toLowerCase().includes(keyword));
+
+      // 페이징 계산
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageWords = filtered.slice(start, end);
+
+      pageWords.forEach(word => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="checkbox" class="rowCheckbox" data-id="${word.id}" /></td>
+          <td>${word.word}</td>
+          <td>${word.part_of_speech}</td>
+          <td>${word.meaning}</td>
+          <td><button onclick='showEditForm(${JSON.stringify(word)}, this)'>수정</button></td>
+          <td><button onclick="deleteWord(${word.id}, '${word.word}')">삭제</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderPagination() {
+      const container = document.getElementById('pagination');
+      container.innerHTML = '';
+
+      const keyword = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allWords.filter(word => word.word.toLowerCase().includes(keyword));
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+      if (totalPages <= 1) return;
+
+      const nav = document.createElement('div');
+
+      //맨앞 버튼
+      if (currentPage > 1) {
+        const first = document.createElement('button');
+        first.textContent = '<<';
+        first.className = 'page-btn';
+        first.onclick = () => {
+          currentPage = 1;
+          renderTable();
+          renderPagination();
+        };
+        nav.appendChild(first);
+      }
+
+      // 이전 버튼
+      if (currentPage > 1) {
+        const prev = document.createElement('button');
+        prev.textContent = '<';
+        prev.className = 'page-btn';
+        prev.onclick = () => { currentPage--; renderTable(); renderPagination(); };
+        nav.appendChild(prev);
+      }
+
+      const maxButtons = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = startPage + maxButtons - 1;
+
+        if (endPage > totalPages) {
+          endPage = totalPages;
+          startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+      // 페이지 번호
+      for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = 'page-btn';
+        if (i === currentPage) {
+          btn.classList.add('active');
+        }
+        btn.onclick = () => { currentPage = i; renderTable(); renderPagination(); };
+        nav.appendChild(btn);
+      }
+
+
+      // 다음 버튼
+      if (currentPage < totalPages) {
+        const next = document.createElement('button');
+        next.textContent = '>';
+        next.className = 'page-btn';
+        next.onclick = () => { currentPage++; renderTable(); renderPagination(); };
+        nav.appendChild(next);
+      }
+
+      //맨뒤 버튼
+      if (currentPage < totalPages) {
+        const last = document.createElement('button');
+        last.textContent = '>>';
+        last.className = 'page-btn';
+        last.onclick = () => {
+          currentPage = totalPages;
+          renderTable();
+          renderPagination();
+        };
+        nav.appendChild(last);
+      }
+
+
+      container.appendChild(nav);
+    }
+
+    async function showEditForm(word, btn) {
+      // 기존 수정 행이 있으면 제거
+      const existing = document.getElementById('editRow');
+      if (existing) existing.remove();
+
+      const row = btn.closest('tr');
+
+      const detailRes = await fetch(`/api/details/${word.id}`);
+        let detail = {};
+        if (detailRes.ok) {
+          detail = await detailRes.json();
+        }
+      const editRow = document.createElement('tr');
+      editRow.id = 'editRow';
+
+      editRow.innerHTML = `
+        <td colspan="5">
+          <form id="editForm" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+
+            <input type="hidden" id="editId" value="${word.id}" />
+
+            <!-- 필수 항목 -->
+            <div style="display: flex; gap: 10px; width: 100%;">
+              <input type="text" id="editEnglish" value="${word.word}" required placeholder="단어" style="flex: 1;" />
+              <input type="text" id="editPOS" value="${word.part_of_speech}" required placeholder="품사" style="flex: 1;" />
+              <input type="text" id="editKorean" value="${word.meaning}" required placeholder="뜻(한글)" style="flex: 2;" />
+              <input type="text" id="editDifficulty" value="${word.difficulty || ''}" required placeholder="난이도" />
+            </div>
+
+            <!-- 선택 항목 -->
+            <div style="display: flex; gap: 10px; width: 100%;">
+              <input type="text" id="editSynonym" value="${detail.synonym || ''}" placeholder="유의어 (선택)" style="flex: 1;" />
+              <input type="text" id="editAntonym" value="${detail.antonym || ''}" placeholder="반의어 (선택)" style="flex: 1;" />
+              <input type="text" id="editExample" value="${detail.example || ''}" placeholder="예문 (선택)" style="flex: 2;" />
+              <input type="text" id="editExampleKor" value="${detail.example_kor || ''}" placeholder="예문 해석 (선택)" style="flex: 2;" />
+            </div>
+
+            <!-- 버튼 영역 -->
+            <div style="display: flex; gap: 10px; margin-left: 20px;">
+              <button type="submit">수정 완료</button>
+              <button type="button" id="cancelEdit">취소</button>
+            </div>
+          </form>
+        </td>
+      `;
+
+      row.after(editRow);
+
+      document.getElementById('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editId').value;
+
+        // 1. 기본 단어 정보 수정
+        const basic = {
+          word: document.getElementById('editEnglish').value,
+          part_of_speech: document.getElementById('editPOS').value,
+          meaning: document.getElementById('editKorean').value,
+          difficulty: document.getElementById('editDifficulty').value
+        };
+
+        const res1 = await fetch(`/api/words/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(basic)
+        });
+
+        // 2. 상세 정보 수정
+        const detail = {
+          synonym: document.getElementById('editSynonym').value,
+          antonym: document.getElementById('editAntonym').value,
+          example: document.getElementById('editExample').value,
+          example_kor: document.getElementById('editExampleKor').value
+        };
+
+        const res2 = await fetch(`/api/details/${id}`, {
+          method: 'POST', // 기존 상세 정보 있으면 수정, 없으면 추가됨
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(detail)
+        });
+
+        if (res1.ok && res2.ok) {
+          alert('수정 완료!');
+          loadWords();
+        } else {
+          alert('수정 실패');
+        }
+      });
+
+
+      document.getElementById('cancelEdit').addEventListener('click', () => {
+        editRow.remove();
+      });
+    }
+
+  
+    async function deleteWord(id, word) {
+      const confirmed = confirm(`"${word}" 단어를 정말 삭제하시겠습니까?`);
+      if (!confirmed) return;
+      const res = await fetch(`/api/words/${id}`, {
+        method: 'DELETE'
+      });
+  
+      if (res.ok) {
+        alert(`"${word}" 단어가 삭제되었습니다.`);
+        loadWords();
+      } else {
+        const data = await res.json();
+        if (data?.error === '100개 이하일 경우 삭제 불가') {
+          alert(`삭제 실패: 단어 수가 100개 이하일 경우 삭제할 수 없습니다.`);
+        } else {
+          alert('삭제 실패');
+        }
+      }
+    }
+
+    document.getElementById('selectAll').addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      document.querySelectorAll('.rowCheckbox').forEach(cb => cb.checked = checked);
+    });
+
+    document.getElementById('deleteSelectedBtn').addEventListener('click', async () => {
+      const selected = [...document.querySelectorAll('.rowCheckbox:checked')];
+      if (selected.length === 0) return alert('삭제할 단어를 선택하세요.');
+
+      const confirmed = confirm(`${selected.length}개의 단어를 삭제하시겠습니까?`);
+      if (!confirmed) return;
+
+      let successCount = 0;
+      let failedCount = 0;
+
+      for (const cb of selected) {
+        const id = cb.dataset.id;
+        const res = await fetch(`/api/words/${id}`, { method: 'DELETE' });
+        if (res.ok) successCount++;
+        else failedCount++;
+      }
+
+      let message = `${successCount}개 단어가 삭제되었습니다.`;
+      if (failedCount > 0) message += `\n${failedCount}개 단어는 삭제에 실패했습니다.`;
+
+      alert(message);
+      loadWords();
+    });
+
+  
+    document.getElementById('promoteBtn')?.addEventListener('click', async () => {
+      const email = document.getElementById('promoteEmail').value;
+      const res = await fetch('/api/promote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+  
+      if (res.ok) {
+        alert(`${email} 님이 관리자 권한으로 승격되었습니다.`);
+        document.getElementById('promoteEmail').value = '';
+      }
+      else alert(`${email} 승격 실패`);
+    });
+
+    document.getElementById('demoteBtn')?.addEventListener('click', async () => {
+      const email = document.getElementById('demoteEmail').value;
+      const res = await fetch('/api/demote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      if (res.ok){
+        alert(`${email} 님의 관리자 권한이 회수되었습니다.`);
+        document.getElementById('demoteEmail').value = '';
+      }
+      else alert(`${email} 권한 회수 실패`);
+    });
+
+    document.getElementById('searchInput').addEventListener('input', () => {
+      currentPage = 1;
+      renderTable();
+      renderPagination();
+    });
+
+    async function fetchExistingWords() {
+      const res = await fetch('/api/words');
+      const data = await res.json();
+      return data.map(w => w.word.toLowerCase()); // 중복 체크용 소문자 목록
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let insideQuotes = false;
+      let field = '';
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"' && insideQuotes && nextChar === '"') {
+          field += '"'; // escaped quote
+          i++;
+        } else if (char === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+          result.push(field.trim());
+          field = '';
+        } else {
+          field += char;
+        }
+      }
+      result.push(field.trim());
+      return result;
+    }
+
+
+    function isValidWord(word) {
+      return /^[a-zA-Z\- ]+$/.test(word); // 영어와 하이픈(-)만 허용
+    }
+
+    async function uploadCSV() {
+      const input = document.getElementById('csvFileInput');
+      const file = input.files[0];
+      if (!file) return alert('CSV 파일을 선택해주세요.');
+
+      const reader = new FileReader();
+      const existingWords = await fetchExistingWords();
+
+      reader.onload = async (e) => {
+        const lines = e.target.result.split(/\r?\n/).filter(line => line.trim());
+        if (lines.length <= 1) return alert('CSV에 데이터가 없습니다.');
+
+        let success = 0, duplicate = 0, invalid = 0;
+
+        for (let i = 1; i < lines.length; i++) {
+          const parsed = parseCSVLine(lines[i]);
+          if (!parsed || parsed.length < 3) {
+            invalid++;
+            continue;
+          }
+
+          let [word, part_of_speech, meaning, synonym, antonym, example, example_kor, difficulty] = parsed.map(p => p.trim());
+
+          if (!isValidWord(word)) {
+            invalid++;
+            continue;
+          }
+
+          if (existingWords.includes(word.toLowerCase())) {
+            duplicate++;
+            continue;
+          }
+
+          try {
+            const resWord = await fetch('/api/words', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ word, part_of_speech, meaning, difficulty })
+            });
+
+            if (resWord.ok) {
+              const result = await resWord.json();
+              const wordId = result.id;
+
+              // 2. 세부정보 등록 (/api/details/:id)
+              await fetch(`/api/details/${wordId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ synonym, antonym, example, example_kor })
+              });
+
+              success++;
+              existingWords.push(word.toLowerCase());
+            } else {
+              invalid++;
+            }
+          } catch {
+            invalid++;
+          }
+        }
+
+        alert(`CSV 업로드 결과\n 성공: ${success}개\n 중복: ${duplicate}개\n 유효하지 않음: ${invalid}개`);
+        loadWords();
+      };
+
+      reader.onerror = () => alert("파일 읽기 중 오류가 발생했습니다.");
+
+      reader.readAsText(file, 'utf-8');
+    }
+
+    loadWords();
+  </script>
+  
+</body>
+</html>
