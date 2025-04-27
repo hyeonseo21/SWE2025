@@ -39,7 +39,7 @@ const db = mysql.createConnection({
   host: 'localhost',
   port: 9090,   //수정됨: port번호 3306 아닐경우 추가
   user: 'root',
-  password: '0601dd!@',
+  password: '1234',
   database: 'enpick_db'
 });
 
