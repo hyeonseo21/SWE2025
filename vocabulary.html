@@ -6,6 +6,7 @@
   <title>EnPick - TOEIC Vocabulary</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/vocabulary.css">
+  <link rel='stylesheet' type='text/css'href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css'/>
 </head>
 <body>
   <!-- 상단 바 -->
@@ -17,14 +18,17 @@
     <div class="nav-user">
       <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
     </div>
+    <div class="hamburger" id="hamburger">&#9776;</div>
   </nav>
 
   <!-- 사이드바 -->
   <div class="sidebar">
     <a href="home.html" class="menu-item">홈</a>
-    <a href="vocabulary.html" class="menu-item active">단어장</a>
-    <a href="#" class="menu-item">학습</a>
-    <a href="#" class="menu-item">테스트</a>
+    <a href="vocabulary.html" class="menu-item active">전체 단어장</a>
+    <a href="mywords.html" class="menu-item">My 단어장</a>
+    <a href="study.html" class="menu-item">학습</a>
+    <a href="gamestart.html" class="menu-item">단어 미니 게임</a>
+    <a href="teststart.html" class="menu-item">테스트</a>
     <a href="#" class="menu-item">통계</a>
   </div>
 
@@ -89,6 +93,8 @@
     let filteredWords = [];
     let currentPage = 1;
     const itemsPerPage = 20;
+    let learnedSet = new Set();
+    const userId = localStorage.getItem('user_id');
 
     // 페이지 로드 시 단어 목록 표시
     document.addEventListener('DOMContentLoaded', async () => {
@@ -140,7 +146,7 @@
       // Word.txt 파일에서 데이터 읽어오기
       // DB에서 단어 목록 읽어오기 (API 호출)
       try {
-        const response = await fetch('/api/words');
+        const response = await fetch('/api/words', {credentials: 'include'});
         const json = await response.json();
         wordData = json;
         filteredWords = [...wordData];
@@ -149,6 +155,20 @@
         console.error('단어 데이터를 불러오는 중 오류가 발생했습니다:', error);
         document.getElementById('wordTableBody').innerHTML = 
           '<tr><td colspan="4">단어 데이터를 불러오는 중 오류가 발생했습니다. 서버 상태를 확인해주세요.</td></tr>';
+      }
+
+      let learnedSet = new Set(); // 학습 완료 단어 id 저장
+
+      const userId = localStorage.getItem('user_id');
+
+      if (userId) {
+        try {
+          const learnedRes = await fetch(`/api/learned?user_id=${userId}`);
+          const learnedIds = await learnedRes.json();
+          learnedSet = new Set(learnedIds);
+        } catch (err) {
+          console.error('학습 완료 목록 불러오기 실패:', err);
+        }
       }
 
     });
@@ -172,7 +192,14 @@
         <td>${word.word}</td>
         <td>${word.part_of_speech}</td>
         <td>${word.meaning}</td>
-        <td>미학습</td>
+        <td>
+          <div class="toggle-wrapper" data-id="${word.id}" data-checked="false">
+            <div class="toggle-bg">
+              <div class="toggle-handle"></div>
+            </div>
+            <i class="fa-solid fa-xmark toggle-icon"></i>
+          </div>
+        </td>
         <td>
           <button class="study-btn" onclick="showStudyOptions(${word.id})">학습하기</button>
         </td>
@@ -181,6 +208,43 @@
       row.addEventListener('click', (e) => {
         if (e.target.classList.contains('study-btn') || e.target.classList.contains('study-sub-btn')) return;
         window.location.href = `seemore.html?wordId=${word.id}`;
+      });
+
+      const toggle = row.querySelector('.toggle-wrapper');
+      const icon = toggle.querySelector('.toggle-icon');
+      const isLearned = learnedSet.has(word.id);
+
+      toggle.dataset.checked = isLearned.toString();
+      if (isLearned) {
+        toggle.classList.add('active');
+        toggle.querySelector('.toggle-bg').style.backgroundColor = '#2ecc71';
+        toggle.querySelector('.toggle-handle').style.left = '21px';
+        icon.classList.remove('fa-xmark');
+        icon.classList.add('fa-check');
+      }
+
+      toggle.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const checked = toggle.dataset.checked === 'true';
+        const method = checked ? 'DELETE' : 'POST';
+
+        const res = await fetch('/api/learned', {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, word_id: word.id })
+        });
+
+        if (res.ok) {
+          const newChecked = !checked;
+          toggle.dataset.checked = newChecked.toString();
+          toggle.classList.toggle('active');
+          icon.classList.toggle('fa-xmark', !newChecked);
+          icon.classList.toggle('fa-check', newChecked);
+          toggle.querySelector('.toggle-bg').style.backgroundColor = newChecked ? '#2ecc71' : '#ccc';
+          toggle.querySelector('.toggle-handle').style.left = newChecked ? '21px' : '1px';
+          if (newChecked) learnedSet.add(word.id);
+          else learnedSet.delete(word.id);
+        }
       });
 
       return row;
@@ -281,9 +345,8 @@
       const studyRow = document.createElement('tr');
       studyRow.innerHTML = `
         <td colspan="6" style="text-align: left; padding: 10px;">
-          <button class="study-sub-btn">📘 매일 테스트</button>
-          <button class="study-sub-btn">🎮 단어 게임</button>
-          <button class="study-sub-btn">체크리스트 추가</button>
+          <button class="study-sub-btn" onclick="window.location.href='seemore.html?wordId=${wordId}'">🔍 상세보기</button>
+          <button class="study-sub-btn" onclick="addToMyWords(${wordId})">MyWords 추가</button>
         </td>
       `;
       row.after(studyRow);
@@ -317,6 +380,42 @@
       currentPage = 1;
       displayPage(currentPage);
     }
+
+    async function addToMyWords(wordId) {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/mywords', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            word_id: wordId,
+            source: 'favorite'
+          })
+        });
+
+        if (!res.ok) throw new Error();
+        alert('My 단어장에 추가되었습니다!');
+      } catch (err) {
+        console.error('MyWords 추가 실패:', err);
+        alert('이미 추가된 단어이거나 오류가 발생했습니다.');
+      }
+    }
+
+    
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+      document.querySelector('.sidebar')?.classList.toggle('show');
+    });
+
+
   </script>
 </body>
 </html> 

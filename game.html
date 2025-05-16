@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>단어 게임</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6fc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+    .game-header {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .game-card {
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+    /* Block Puzzle 스타일 */
+    .input-area {
+      min-height: 40px;
+      margin-bottom: 20px;
+      font-size: 24px;
+      letter-spacing: 3px;
+      padding: 10px;
+      border: 2px dashed #ccc;
+      border-radius: 6px;
+      background-color: #f9f9f9;
+    }
+    .blocks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .block-btn {
+      padding: 10px 16px;
+      font-size: 18px;
+      background-color: #7d87dc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .block-btn:hover { background-color: #5c63bd; }
+    .cancel-btn {
+      padding: 10px 16px;
+      font-size: 18px;
+      background-color: #999;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    /* Matching 게임 스타일 */
+    .matching-container {
+      display: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .card {
+      width: 120px;
+      height: 60px;
+      background-color: #7d87dc;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .card:hover { background-color: #5c63bd; }
+    .card.selected { background-color: #ffeb3b !important; color: #333; }
+    .matched { background-color: #4caf50 !important; }
+    /* Jump 게임 스타일 */
+    .game-area {
+      display: none;
+      position: relative;
+      width: 300px;
+      height: 250px;
+      background-color: #dbe4ff;
+      border-radius: 10px;
+      margin: 20px auto;
+    }
+    .platform {
+      position: absolute;
+      bottom: 0;
+      width: 120px;
+      height: 40px;
+      background-color: #5f79e6;
+      color: white;
+      line-height: 40px;
+      text-align: center;
+      border-radius: 8px;
+    }
+    #leftPlatform { left: 20px; }
+    #rightPlatform { right: 20px; }
+    #player {
+      position: absolute;
+      bottom: 40px;
+      width: 40px;
+      height: 40px;
+      background-color: #e65f5f;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 40px;
+      font-weight: bold;
+      color: white;
+      left: 40px;
+      transition: left 0.1s;
+    }
+    /* 공통 스타일 */
+    .result { margin-top: 20px; font-size: 18px; }
+    .next-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-header">
+    <div>문제: <span id="currentIndex">1</span>/<span id="totalCount">1</span></div>
+    <div>점수: <span id="score">0</span></div>
+    <button id="exitBtn" class="next-btn" style="background-color: #ccc;">게임 나가기</button>
+  </div>
+
+  <div class="game-card" id="gameCard">
+    <!-- Block Puzzle -->
+    <div class="meaning" id="meaning"></div>
+    <div class="input-area" id="answerArea"></div>
+    <div class="blocks" id="blocksContainer"></div>
+    <!-- Matching Game -->
+    <div class="matching-container" id="matchingContainer"></div>
+    <!-- Jump Game -->
+    <h3 id="jumpQuestion" style="display:none;">뜻: ---</h3>
+    <div class="game-area" id="jumpContainer">
+      <div id="leftPlatform" class="platform">Left</div>
+      <div id="rightPlatform" class="platform">Right</div>
+      <div id="player">🐾</div>
+    </div>
+    <div class="result" id="result"></div>
+    <button class="next-btn" id="nextBtn" style="display:none;">다음</button>
+  </div>
+
+  <script>
+    const query = new URLSearchParams(window.location.search);
+    const mode = query.get('mode') || 'block';
+    const source = query.get('source') || 'mywords';
+    const level = query.get('level') || '';
+    const count = parseInt(query.get('count') || '10');
+
+    let wordList = [];
+    let current = 0;
+    let score = 0;
+    let mistakes = 0;
+    let sets = [];
+    const batchSize = 5;
+    let totalSets = 0;
+
+    document.getElementById('exitBtn').addEventListener('click', () => {
+      if (confirm('정말 게임을 종료하시겠습니까?')) window.location.href = 'gamestart.html';
+    });
+
+    async function fetchWords() {
+      const res = await fetch(`/api/gamewords?source=${source}&level=${level}&count=${count}`, {credentials: 'include'});
+      wordList = await res.json();
+      if (!Array.isArray(wordList) || wordList.length === 0) {
+        alert('단어를 불러오지 못했습니다.'); return;
+      }
+      if (mode === 'matching') {
+        totalSets = Math.ceil(wordList.length / batchSize);
+        for (let i = 0; i < totalSets; i++) {
+          sets[i] = wordList.slice(i * batchSize, i * batchSize + batchSize);
+        }
+        document.getElementById('totalCount').textContent = totalSets;
+        current = 0;
+        loadMatchingGame();
+      } else {
+        mistakes = 0;
+        document.getElementById('totalCount').textContent = wordList.length;
+        current = 0;
+        if (mode === 'jump') loadJumpGame();
+        else loadBlockPuzzle();
+      }
+    }
+
+    function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+    /* Block Puzzle 모드 */
+    function loadBlockPuzzle() {
+      document.getElementById('meaning').style.display = 'block';
+      document.getElementById('answerArea').style.display = 'block';
+      document.getElementById('blocksContainer').style.display = 'flex';
+      document.getElementById('matchingContainer').style.display = 'none';
+      document.getElementById('jumpContainer').style.display = 'none';
+      document.getElementById('jumpQuestion').style.display = 'none';
+      document.getElementById('result').textContent = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      const w = wordList[current];
+      document.getElementById('meaning').textContent = w.meaning;
+      document.getElementById('answerArea').textContent = '';
+      document.getElementById('currentIndex').textContent = current + 1;
+      const container = document.getElementById('blocksContainer');
+      container.innerHTML = '';
+      let selected = '';
+      let selectedIndices = [];
+      shuffle(w.word.split('')).forEach((c, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'block-btn';
+        btn.textContent = c;
+        btn.addEventListener('click', () => {
+          selected += c;
+          selectedIndices.push(i);
+          document.getElementById('answerArea').textContent = selected;
+          btn.disabled = true;
+          btn.style.backgroundColor = '#ccc';
+          if (selected.length === w.word.length) {
+            const ok = selected.toLowerCase() === w.word.toLowerCase();
+            document.getElementById('result').textContent = ok ? '정답입니다!' : `오답! 정답: ${w.word}`;
+            if (ok) score++;
+            document.getElementById('score').textContent = score;
+            document.getElementById('nextBtn').style.display = 'inline-block';
+          }
+        });
+        container.appendChild(btn);
+      });
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'cancel-btn';
+      cancelBtn.textContent = '취소';
+      cancelBtn.addEventListener('click', () => {
+        if (selectedIndices.length) {
+          const last = selectedIndices.pop();
+          selected = selected.slice(0, -1);
+          document.getElementById('answerArea').textContent = selected;
+          const btns = container.querySelectorAll('.block-btn');
+          btns[last].disabled = false;
+          btns[last].style.backgroundColor = '';
+        }
+      });
+      container.appendChild(cancelBtn);
+    }
+
+    /* Matching 모드 */
+    function loadMatchingGame() {
+      document.getElementById('meaning').style.display = 'none';
+      document.getElementById('answerArea').style.display = 'none';
+      document.getElementById('blocksContainer').style.display = 'none';
+      document.getElementById('matchingContainer').style.display = 'flex';
+      document.getElementById('jumpContainer').style.display = 'none';
+      document.getElementById('jumpQuestion').style.display = 'none';
+      document.getElementById('result').textContent = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      document.getElementById('currentIndex').textContent = current + 1;
+      const sample = sets[current] || [];
+      const meanings = sample.map(w => ({ text: w.meaning, pair: w.word }));
+      const words = sample.map(w => ({ text: w.word, pair: w.meaning }));
+      const cards = shuffle([...meanings, ...words]);
+      const cont = document.getElementById('matchingContainer');
+      cont.innerHTML = '';
+      let selected = [];
+      cards.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.textContent = item.text;
+        card.dataset.pair = item.pair;
+        card.addEventListener('click', () => {
+          if (card.classList.contains('matched') || card.classList.contains('selected')) return;
+          card.classList.add('selected');
+          selected.push(card);
+          if (selected.length === 2) {
+            const [a, b] = selected;
+            if (a.dataset.pair === b.textContent && b.dataset.pair === a.textContent) {
+              a.classList.add('matched');
+              b.classList.add('matched');
+              score++;
+              document.getElementById('score').textContent = score;
+              document.getElementById('result').textContent = '정답입니다!';
+            } else {
+              document.getElementById('result').textContent = '오답입니다.';
+              setTimeout(() => {
+                a.classList.remove('selected');
+                b.classList.remove('selected');
+              }, 800);
+            }
+            selected = [];
+            if (cont.querySelectorAll('.matched').length === cards.length) {
+              document.getElementById('nextBtn').style.display = 'inline-block';
+            }
+          }
+        });
+        cont.appendChild(card);
+      });
+    }
+
+    /* Jump 모드 */
+    function loadJumpGame() {
+      document.getElementById('meaning').style.display = 'none';
+      document.getElementById('answerArea').style.display = 'none';
+      document.getElementById('blocksContainer').style.display = 'none';
+      document.getElementById('matchingContainer').style.display = 'none';
+      document.getElementById('jumpContainer').style.display = 'block';
+      document.getElementById('jumpQuestion').style.display = 'block';
+      document.getElementById('result').textContent = '';
+      document.getElementById('currentIndex').textContent = current + 1;
+      const q = wordList[current];
+      document.getElementById('jumpQuestion').textContent = `뜻: ${q.meaning}`;
+      const wrongs = wordList.filter(w => w.word !== q.word).map(w => w.word);
+      const distractor = wrongs[Math.floor(Math.random() * wrongs.length)];
+      const leftIsCorrect = Math.random() < 0.5;
+      document.getElementById('leftPlatform').textContent = leftIsCorrect ? q.word : distractor;
+      document.getElementById('rightPlatform').textContent = leftIsCorrect ? distractor : q.word;
+      document.getElementById('player').style.left = '130px';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (mode !== 'jump') return;
+      const p = document.getElementById('player');
+      let left = parseInt(p.style.left);
+      if (e.key === 'ArrowLeft') left = Math.max(20, left - 60);
+      else if (e.key === 'ArrowRight') left = Math.min(220, left + 60);
+      else if (e.key === ' ' || e.key === 'ArrowUp') {
+        const chosen = left < 150 ? document.getElementById('leftPlatform').textContent : document.getElementById('rightPlatform').textContent;
+        const correct = wordList[current].word;
+        if (chosen === correct) {
+          score++;
+          document.getElementById('score').textContent = score;
+          document.getElementById('result').textContent = '정답입니다!';
+        } else {
+          mistakes++;
+          document.getElementById('result').textContent = `오답입니다. (${mistakes}/3)`;
+        }
+        setTimeout(() => {
+          current++;
+          if (current < wordList.length && mistakes < 3) loadJumpGame();
+          else document.body.innerHTML = `<h2>게임 종료!</h2><p>최종 점수: ${score}</p><button onclick="goToResultPage()">결과 보기</button>`;
+        }, 600);
+      }
+      p.style.left = left + 'px';
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (mode === 'matching') {
+        current++;
+        if (current < totalSets) loadMatchingGame();
+        else document.getElementById('gameCard').innerHTML = `<h2>게임 종료!</h2><p>최종 점수: ${score}</p><button onclick="goToResultPage()">결과 보기</button>`;
+      } else {
+        current++;
+        if (current < wordList.length) {
+          if (mode === 'jump') loadJumpGame();
+          else loadBlockPuzzle();
+        } else {
+          document.getElementById('gameCard').innerHTML = `<h2>게임 종료!</h2><p>최종 점수: ${score}</p><button onclick="goToResultPage()">결과 보기</button>`;
+        }
+      }
+    });
+
+    function goToResultPage() {
+      // 공통 결과 포맷 생성
+      const resultData = wordList.map((w, i) => {
+        const correct = mode === 'jump' ? (i < current || mistakes < 3) : (i < score);
+        return {
+          word_id: w.id || w.word_id,
+          word: w.word,
+          meaning: w.meaning,
+          correct: correct,
+          userAnswer: correct ? w.word : "게임 오답"
+        };
+      });
+      localStorage.setItem("testResult", JSON.stringify(resultData));
+      localStorage.setItem("testSource", "game");
+      location.href = 'testresult.html';
+    }
+
+
+    fetchWords();
+  </script>
+</body>
+</html>

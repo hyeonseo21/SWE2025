@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnPick - My 단어장</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/vocabulary.css">
+  <link rel='stylesheet' type='text/css'href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css'/>
+</head>
+<body>
+  <!-- 상단 바 -->
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
+    </div>
+    <div class="hamburger" id="hamburger">&#9776;</div>
+  </nav>
+
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <a href="home.html" class="menu-item">홈</a>
+    <a href="vocabulary.html" class="menu-item">전체 단어장</a>
+    <a href="mywords.html" class="menu-item active">My 단어장</a>
+    <a href="study.html" class="menu-item">학습</a>
+    <a href="gamestart.html" class="menu-item">단어 미니 게임</a>
+    <a href="teststart.html" class="menu-item">테스트</a>
+    <a href="#" class="menu-item">통계</a>
+  </div>
+
+  <!-- 메인 콘텐츠 -->
+  <div class="main-content">
+    <h1>My 단어장</h1>
+
+    <div class="sort-filter">
+      <div class="sort-group">
+        <span>정렬:</span>
+        <button class="sort-btn active" data-sort="recent">추가일순</button>
+        <button class="sort-btn" data-sort="alpha">알파벳순</button>
+        <button class="sort-btn" data-sort="part">품사순</button>
+        <button id="sortDirectionBtn" class="sort-direction-btn">오름차순</button>
+      </div>
+      <div class="filter-group">
+        <span>분류:</span>
+        <label>
+          <input type="checkbox" class="filter-checkbox" value="favorite" checked>
+          <i class="fa-solid fa-star added-icon" title="수동 추가"></i>수동 추가
+        </label>
+        <label>
+          <input type="checkbox" class="filter-checkbox" value="test" checked>
+          <i class="fa-solid fa-file-lines added-icon" title="테스트 오답"></i>테스트 오답
+        </label>
+        <label>
+          <input type="checkbox" class="filter-checkbox" value="game" checked>
+          <i class="fa-solid fa-gamepad added-icon" title="게임 오답"></i>게임 오답
+        </label>
+        <label>
+          <input type="checkbox" class="filter-checkbox" value="learned">
+          <i class="fa-solid fa-xmark toggle-icon" title="미학습"></i>미학습
+        </label>
+      </div>
+      <div class="search-view-row">
+        <div class="search-input-wrapper compact">
+          <input type="text" placeholder="단어를 입력하세요..." id="searchInput" />
+        </div>
+        <div class="view-toggle">
+          <button id="card-view-btn" class="active">카드 보기</button>
+          <button id="table-view-btn">테이블 보기</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="card-view">
+      <div class="card-container" id="myword-cards"></div>
+    </div>
+
+    <div id="table-view" style="display: none;">
+      <div class="word-table">
+        <table>
+          <thead>
+            <tr>
+              <th>단어</th>
+              <th>뜻</th>
+              <th>품사</th>
+              <th>추가유형</th>
+              <th>추가일</th>
+              <th>학습 상태</th>
+              <th>삭제</th>
+            </tr>
+          </thead>
+          <tbody id="myword-list"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let words = [];
+    let ascending = false;  // 초기: 최신순 + 내림차순
+    let learnedSet = new Set();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/me', { credentials: 'include' });
+        if (!res.ok) throw new Error();
+        const user = await res.json();
+        localStorage.setItem('user_id', user.id);
+        const userSpan = document.createElement('span');
+        userSpan.textContent = `${user.email}님`;
+        document.querySelector('.nav-user')?.prepend(userSpan);
+      } catch (err) {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+        try {
+          await fetch('/logout', { method: 'POST', credentials: 'include' });
+        } catch {}
+        localStorage.clear();
+        window.location.href = 'login.html';
+      });
+
+      // 🔽 정렬 방향 버튼 초기 셋팅
+      const dirBtn = document.getElementById('sortDirectionBtn');
+      dirBtn.textContent = '내림차순';
+      dirBtn.classList.add('descending');
+
+      const userId = localStorage.getItem('user_id');
+      try {
+        const res = await fetch(`/api/mywords?user_id=${userId}`);
+        words = await res.json();
+        const learnedRes = await fetch(`/api/learned?user_id=${userId}`);
+        const learned = await learnedRes.json();
+        learnedSet = new Set(learned);
+        renderMyWords(words);
+
+        // 🔄 정렬 기준 버튼 클릭
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // ✅ 기준별 정렬 방향 자동 설정
+            const selectedSort = btn.dataset.sort;
+            if (selectedSort === 'recent') {
+              ascending = false;
+            } else {
+              ascending = true;
+            }
+
+            dirBtn.textContent = ascending ? '오름차순' : '내림차순';
+            dirBtn.classList.toggle('ascending', ascending);
+            dirBtn.classList.toggle('descending', !ascending);
+
+            renderMyWords(words);
+          });
+        });
+
+        // 🔄 필터 체크박스
+        document.querySelectorAll('.filter-checkbox').forEach(cb => {
+          cb.addEventListener('change', () => renderMyWords(words));
+        });
+      } catch (err) {
+        console.error('단어 불러오기 실패:', err);
+        alert('단어를 불러오는 데 실패했습니다.');
+      }
+
+      document.getElementById('card-view-btn').addEventListener('click', () => {
+        document.getElementById('table-view').style.display = 'none';
+        document.getElementById('card-view').style.display = 'block';
+        document.getElementById('card-view-btn').classList.add('active');
+        document.getElementById('table-view-btn').classList.remove('active');
+      });
+
+      document.getElementById('table-view-btn').addEventListener('click', () => {
+        document.getElementById('card-view').style.display = 'none';
+        document.getElementById('table-view').style.display = 'block';
+        document.getElementById('table-view-btn').classList.add('active');
+        document.getElementById('card-view-btn').classList.remove('active');
+      });
+
+      // 🔁 오름/내림차순 버튼 클릭
+      dirBtn.addEventListener('click', () => {
+        ascending = !ascending;
+        dirBtn.textContent = ascending ? '오름차순' : '내림차순';
+        dirBtn.classList.toggle('ascending', ascending);
+        dirBtn.classList.toggle('descending', !ascending);
+        renderMyWords(words);
+      });
+
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('input', () => renderMyWords(words));
+      }
+    });
+
+
+    function renderMyWords(wordList) {
+      const tbody = document.getElementById('myword-list');
+      const cardContainer = document.getElementById('myword-cards');
+      tbody.innerHTML = '';
+      cardContainer.innerHTML = '';
+      const userId = localStorage.getItem('user_id');
+
+      const sortValue = document.querySelector('.sort-btn.active')?.dataset.sort || 'recent';
+      const checkedFilters = Array.from(document.querySelectorAll('.filter-checkbox:checked')).map(cb => cb.value);
+
+      // 필터 조건: OR 방식으로 통과
+      const filtered = wordList.filter(w => {
+        const byType =
+          (checkedFilters.includes('favorite') && w.added_by_favorite) ||
+          (checkedFilters.includes('test')     && w.added_by_test) ||
+          (checkedFilters.includes('game')     && w.added_by_game);
+
+        if (checkedFilters.includes('learned')) {
+          return !learnedSet?.has?.(w.word_id); // ✅ 미학습만
+        } else {
+          return byType; // ✅ 분류 필터 조건 중 하나라도
+        }
+      });
+
+      // 정렬 기준
+      if (sortValue === 'recent') {
+        filtered.sort((a, b) => ascending
+            ? new Date(a.added_at) - new Date(b.added_at)
+            : new Date(b.added_at) - new Date(a.added_at));
+      } else if (sortValue === 'alpha') {
+        filtered.sort((a, b) => ascending
+            ? a.word.localeCompare(b.word)
+            : b.word.localeCompare(a.word));
+      } else if (sortValue === 'part') {
+        filtered.sort((a, b) => ascending
+            ? a.part_of_speech.localeCompare(b.part_of_speech)
+            : b.part_of_speech.localeCompare(a.part_of_speech));
+      }
+
+      // 추가 유형 문자열 표시
+      function getAddedByLabels(word) {
+        const labels = [];
+        if (word.added_by_favorite) labels.push('수동 추가');
+        if (word.added_by_test)     labels.push('테스트 오답');
+        if (word.added_by_game)     labels.push('게임 오답');
+        return labels.join(', ');
+      }
+
+      // 추가 아이콘 구성
+      function getAddedIcons(word) {
+        const icons = [];
+        if (word.added_by_favorite) icons.push(`<i class="fa-solid fa-star added-icon" title="수동 추가"></i>`);
+        if (word.added_by_test)     icons.push(`<i class="fa-solid fa-file-lines added-icon" title="테스트 오답"></i>`);
+        if (word.added_by_game)     icons.push(`<i class="fa-solid fa-gamepad added-icon" title="게임 오답"></i>`);
+        return icons.join(' ');
+      }
+
+      const searchTerm = searchInput?.value.toLowerCase().trim() || '';
+      const final = filtered.filter(word =>
+        word.word.toLowerCase().includes(searchTerm) ||
+        word.meaning.toLowerCase().includes(searchTerm)
+      );
+
+      // 테이블형 렌더링
+      final.forEach(word => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${word.word}</td>
+          <td>${word.meaning}</td>
+          <td>${word.part_of_speech}</td>
+          <td>${getAddedByLabels(word)}</td>
+          <td>${new Date(word.added_at).toLocaleDateString()}</td>
+          <td>
+            <div class="toggle-wrapper" data-id="${word.word_id}" data-checked="false">
+              <div class="toggle-bg"><div class="toggle-handle"></div></div>
+              <i class="fa-solid fa-xmark toggle-icon"></i>
+            </div>
+          </td>
+          <td><button class="study-btn delete-btn" data-id="${word.word_id}">삭제</button></td>
+        `;
+        tr.style.cursor = 'pointer';
+        tr.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('delete-btn')) {
+            window.location.href = `seemore.html?wordId=${word.word_id}`;
+          }
+        });
+        tbody.appendChild(tr);
+
+        // 카드형 렌더링
+        const card = document.createElement('div');
+        card.className = 'word-card';
+        card.innerHTML = `
+          <h3>${word.word}</h3>
+          <div class="meaning">${word.meaning}</div>
+          <div><em>${word.part_of_speech}</em></div>
+          <div class="word-card-footer">
+            <button class="study-btn delete-btn" data-id="${word.word_id}">삭제</button>
+            <div class="added-icon-wrapper">${getAddedIcons(word)}</div>
+          </div>
+        `;
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('delete-btn')) {
+            window.location.href = `seemore.html?wordId=${word.word_id}`;
+          }
+        });
+        const toggle = document.createElement('div');
+        toggle.className = 'toggle-wrapper float'; // float class 추가
+        toggle.dataset.id = word.word_id;
+        toggle.dataset.checked = 'false';
+        toggle.innerHTML = `
+          <div class="toggle-bg"><div class="toggle-handle"></div></div>
+          <i class="fa-solid fa-xmark toggle-icon"></i>
+        `;
+        card.appendChild(toggle);
+
+        cardContainer.appendChild(card);
+      });
+
+      //학습 완료 상태
+      fetch(`/api/learned?user_id=${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          learnedSet = new Set(data);
+
+          document.querySelectorAll('.toggle-wrapper').forEach(wrapper => {
+            const wordId = Number(wrapper.dataset.id);
+            const icon = wrapper.querySelector('.toggle-icon');
+            const handle = wrapper.querySelector('.toggle-handle');
+            const bg = wrapper.querySelector('.toggle-bg');
+
+            const isChecked = learnedSet.has(wordId);
+            wrapper.dataset.checked = isChecked.toString();
+            icon.classList.toggle('fa-check', isChecked);
+            icon.classList.toggle('fa-xmark', !isChecked);
+            handle.style.left = isChecked ? '21px' : '1px';
+            bg.style.backgroundColor = isChecked ? '#2ecc71' : '#ccc';
+
+            wrapper.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              const nowChecked = wrapper.dataset.checked === 'true';
+              const method = nowChecked ? 'DELETE' : 'POST';
+              const res = await fetch('/api/learned', {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, word_id: wordId })
+              });
+              if (res.ok) {
+                const newChecked = !nowChecked;
+                wrapper.dataset.checked = newChecked.toString();
+                icon.classList.toggle('fa-check', newChecked);
+                icon.classList.toggle('fa-xmark', !newChecked);
+                handle.style.left = newChecked ? '21px' : '1px';
+                bg.style.backgroundColor = newChecked ? '#2ecc71' : '#ccc';
+              }
+            });
+          });
+        })
+        .catch(err => {
+          console.error('학습 완료 불러오기 실패:', err);
+        });
+
+      // 삭제 기능
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const wordId = e.target.dataset.id;
+          if (confirm('정말 삭제하시겠습니까?')) {
+            try {
+              const res = await fetch(`/api/mywords`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: localStorage.getItem('user_id'), word_id: wordId })
+              });
+
+              if (!res.ok) throw new Error('삭제 실패');
+              alert('삭제되었습니다!');
+              words = words.filter(w => w.word_id !== Number(wordId));
+              renderMyWords(words);
+            } catch (err) {
+              console.error('삭제 오류:', err);
+              alert('삭제에 실패했습니다. 다시 시도해주세요.');
+            }
+          }
+        });
+      });
+    }
+
+    
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+      document.querySelector('.sidebar')?.classList.toggle('show');
+    });
+
+
+  </script>
+</body>
+</html>
+

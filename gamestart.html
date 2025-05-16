@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>EnPick - 게임 설정</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .setup-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-top: 80px;
+    }
+    .setup-container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 460px;
+      text-align: center;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 28px;
+      color: #333;
+      font-size: 22px;
+    }
+    .form-group {
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      text-align: left;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #444;
+    }
+    select, .start-button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      text-align: center;
+      text-align-last: center;
+    }
+    .mode-options, .source-options, .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    .mode-options label,
+    .source-options label {
+      flex: unset;
+      min-width: 110px;
+      text-align: center;
+      padding: 12px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      background-color: #f7f8ff;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .mode-options input,
+    .source-options input {
+      display: none;
+    }
+    .mode-options input:checked + label,
+    .source-options input:checked + label {
+      background-color: #7d87dc;
+      color: white;
+      font-weight: bold;
+      border-color: #5c63bd;
+    }
+    .start-button {
+      background-color: #7d87dc;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .start-button:hover {
+      background-color: #5c63bd;
+    }
+    .nav-buttons {
+      margin-top: 30px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .nav-buttons button {
+      min-width: 120px;
+      padding: 10px 16px;
+      background-color: #ececec;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .nav-buttons button:hover {
+      background-color: #dcdcdc;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-logo" onclick="location.href='home.html'">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <span id="userEmail"></span>
+      <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
+    </div>
+    <div class="hamburger" id="hamburger">&#9776;</div>
+  </nav>
+
+  <div class="sidebar">
+    <a href="home.html" class="menu-item">홈</a>
+    <a href="vocabulary.html" class="menu-item">전체 단어장</a>
+    <a href="mywords.html" class="menu-item">My 단어장</a>
+    <a href="study.html" class="menu-item">학습</a>
+    <a href="gamestart.html" class="menu-item active">단어 미니 게임</a>
+    <a href="teststart.html" class="menu-item">테스트</a>
+    <a href="#" class="menu-item">통계</a>
+  </div>
+
+  <div class="setup-wrapper">
+    <div class="setup-container">
+      <h2>단어 미니 게임 설정</h2>
+      <form id="gameSetupForm">
+        <div class="form-group">
+          <label>단어장 선택</label>
+          <div class="source-options">
+            <input type="radio" name="source" id="mywords" value="mywords" checked>
+            <label for="mywords">MyWords</label>
+            <input type="radio" name="source" id="allwords" value="all">
+            <label for="allwords">전체 단어장</label>
+          </div>
+        </div>
+
+        <div class="form-group" id="difficultyGroup" style="display: none;">
+          <label for="level">난이도 선택</label>
+          <select name="level" id="level">
+            <option value="600">600</option>
+            <option value="700">700</option>
+            <option value="800">800</option>
+            <option value="900">900</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="count">문제 수</label>
+          <select name="count" id="count">
+            <option value="10">10개</option>
+            <option value="20">20개</option>
+            <option value="30">30개</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>게임 모드</label>
+          <div class="mode-options">
+            <input type="radio" name="mode" id="block" value="block" checked>
+            <label for="block">블록 퍼즐</label>
+            <input type="radio" name="mode" id="matching" value="matching">
+            <label for="matching">짝 맞추기</label>
+            <input type="radio" name="mode" id="jump" value="jump">
+            <label for="jump">점프 게임</label>
+          </div>
+        </div>
+
+        <button type="submit" class="start-button">🎮 게임 시작</button>
+      </form>
+
+      <div class="nav-buttons">
+        <button onclick="location.href='mywords.html'">MyWords</button>
+        <button onclick="location.href='vocabulary.html'">전체 단어장</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sourceRadios = document.querySelectorAll('input[name="source"]');
+    const difficultyGroup = document.getElementById('difficultyGroup');
+
+    sourceRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        difficultyGroup.style.display = document.getElementById('allwords').checked ? 'block' : 'none';
+      });
+    });
+
+    document.getElementById('gameSetupForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const source = form.source.value;
+      const level = form.level?.value || '';
+      const count = form.count.value;
+      const mode = form.mode.value;
+
+      const url = `game.html?mode=${mode}&source=${source}&level=${level}&count=${count}`;
+      window.location.href = url;
+    });
+
+    fetch('/api/me', { credentials: 'include' })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(user => {
+        document.getElementById('userEmail').textContent = `${user.email}님`;
+      })
+      .catch(() => {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html';
+      });
+
+    document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+      try {
+        await fetch('/logout', { method: 'POST', credentials: 'include' });
+      } catch (err) {
+        console.error('로그아웃 실패:', err);
+      }
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userRole');
+      window.location.href = 'login.html';
+    });
+
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+      document.querySelector('.sidebar')?.classList.toggle('show');
+    });
+
+  </script>
+</body>
+</html>

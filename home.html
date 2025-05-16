@@ -90,15 +90,17 @@
       <!-- 관리자 계정만 표시되는 추가 버튼 -->
       <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
     </div>
-
+    <div class="hamburger" id="hamburger">&#9776;</div>
   </nav>
 
   <!-- 사이드바 -->
   <div class="sidebar">
     <a href="home.html" class="menu-item active">홈</a>
-    <a href="vocabulary.html" class="menu-item">단어장</a>
-    <a href="#" class="menu-item">학습</a>
-    <a href="#" class="menu-item">테스트</a>
+    <a href="vocabulary.html" class="menu-item">전체 단어장</a>
+    <a href="mywords.html" class="menu-item">My 단어장</a>
+    <a href="study.html" class="menu-item">학습</a>
+    <a href="gamestart.html" class="menu-item">단어 미니 게임</a>
+    <a href="teststart.html" class="menu-item">테스트</a>
     <a href="#" class="menu-item">통계</a>
   </div>
 
@@ -179,6 +181,12 @@
 
       // 세션에서 사용자 정보를 가져와서 표시하는 로직이 들어갈 예정
     });
+
+    
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+      document.querySelector('.sidebar')?.classList.toggle('show');
+    });
+
 
   </script>
 </body>

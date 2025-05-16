@@ -21,15 +21,18 @@
             <!-- vocabulary.html과 동일한 로그아웃 기능을 위해 id를 지정하고 href="#"로 변경 -->
             <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
         </div>
+        <div class="hamburger" id="hamburger">&#9776;</div>
     </nav>
 
     <!-- 사이드바 -->
     <div class="sidebar">
         <!-- 각 메뉴 항목 -->
         <a href="home.html" class="menu-item">홈</a>
-        <a href="vocabulary.html" class="menu-item active">단어장</a> <!-- 현재 페이지 강조 -->
+        <a href="vocabulary.html" class="menu-item">전체 단어장</a> <!-- 현재 페이지 강조 -->
+        <a href="mywords.html" class="menu-item">My 단어장</a>
         <a href="#" class="menu-item">학습</a>
-        <a href="#" class="menu-item">테스트</a>
+        <a href="gamestart.html" class="menu-item">단어 미니 게임</a>
+        <a href="teststart.html" class="menu-item">테스트</a>
         <a href="#" class="menu-item">통계</a>
     </div>
 
@@ -39,7 +42,14 @@
         <div class="word-detail">
             <!-- 단어 제목과 품사 -->
             <div class="word-header">
-                <h1 id="word-title" class="word-title"></h1> <!-- 단어명 표시 -->
+              <div class="word-title-row">
+                <h1 id="word-title">abide</h1>
+                <div class="tts-buttons">
+                  <button class="tts-btn" id="playUS">🇺🇸 🔊</button>
+                  <button class="tts-btn" id="playUK">🇬🇧 🔊</button>
+                  <button class="tts-btn" id="playAU">🇦🇺 🔊</button>
+                </div>
+              </div>              
                 <div id="word-info" class="word-info"></div> <!-- 품사 표시 -->
             </div>
 
@@ -53,8 +63,15 @@
             <div class="meaning-section">
                 <h2 class="meaning-title">예문</h2>
                 <div class="example">
-                    <p id="example-en" class="example-text"></p> <!-- 영어 예문 -->
-                    <p id="example-ko" class="example-translation"></p> <!-- 한글 해석 -->
+                  <div class="example-row">
+                    <p id="example-en" class="example-text"></p>
+                    <div class="tts-buttons" id="example-tts">
+                      <button class="tts-btn" id="exampleUS">🇺🇸 🔊</button>
+                      <button class="tts-btn" id="exampleUK">🇬🇧 🔊</button>
+                      <button class="tts-btn" id="exampleAU">🇦🇺 🔊</button>
+                    </div>
+                  </div>
+                  <p id="example-ko" class="example-translation"></p> <!-- 한글 해석 -->
                 </div>
             </div>
 
@@ -68,18 +85,23 @@
             </div>
 
             <!-- 뒤로가기 버튼 -->
-            <a href="vocabulary.html" class="back-button">단어장으로 돌아가기</a>
+            <button id="backBtn" class="back-button">뒤로가기</button>
+            <button id="addMyWordsBtn" class="back-button">MyWords 추가</button>
         </div>
     </div>
 
     <!-- 단어 정보 로드 및 로그아웃 기능용 스크립트 -->
     <script>
+      let isMyWords=false; // 현재 상태 저장용
+      let userId, wordId;
+
       document.addEventListener('DOMContentLoaded', async () => {
         // 1. 로그인 상태 확인 (세션 기반)
         try {
           const res = await fetch('/api/me', { credentials: 'include' });
           if (!res.ok) throw new Error();
           const user = await res.json();
+          userId=user.id;
           // 사용자 이메일 표시 (선택 사항)
           const userSpan = document.createElement('span');
           userSpan.textContent = `${user.email}님`;
@@ -106,9 +128,12 @@
           window.location.href = 'login.html';
         });
 
+        
+
+
         // 3. URL 파라미터에서 단어의 id (wordId) 정보를 가져옴
         const params = new URLSearchParams(window.location.search);
-        const wordId = params.get('wordId');
+        wordId = params.get('wordId');
         
         if (!wordId) {
           alert('단어 정보가 없습니다.');
@@ -143,7 +168,103 @@
           console.error('❌ 오류 발생:', error);
           alert('단어 정보를 불러오지 못했습니다.');
         }
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+          window.history.back();
+        });
+
+        const addBtn = document.getElementById('addMyWordsBtn');
+
+        const myRes = await fetch('/api/mywords?user_id=' + userId);
+        const myList = await myRes.json();
+
+        isMyWords = myList.some(item => String(item.word_id) === wordId);
+
+        updateMyWordsBtn();
       });
+
+      function playPronunciation(text, region) {
+        const audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}&region=${region}`);
+        audio.onerror = () => {
+          console.warn(`${region.toUpperCase()} TTS 실패 → SpeechSynthesis fallback`);
+          const utter = new SpeechSynthesisUtterance(text);
+          const langMap = { us: 'en-US', uk: 'en-GB', au: 'en-AU' };
+          utter.lang = langMap[region] || 'en-US';
+          utter.rate = 0.9;
+          speechSynthesis.speak(utter);
+        };
+        audio.play();
+      }
+
+      document.getElementById('playUS')?.addEventListener('click', () => {
+        const word = document.getElementById('word-title')?.textContent;
+        if (word) playPronunciation(word, 'us');
+      });
+      document.getElementById('playUK')?.addEventListener('click', () => {
+        const word = document.getElementById('word-title')?.textContent;
+        if (word) playPronunciation(word, 'uk');
+      });
+      document.getElementById('playAU')?.addEventListener('click', () => {
+        const word = document.getElementById('word-title')?.textContent;
+        if (word) playPronunciation(word, 'au');
+      });
+      document.getElementById('exampleUS')?.addEventListener('click', () => {
+        const sentence = document.getElementById('example-en')?.textContent;
+        if (sentence) playPronunciation(sentence, 'us');
+      });
+      document.getElementById('exampleUK')?.addEventListener('click', () => {
+        const sentence = document.getElementById('example-en')?.textContent;
+        if (sentence) playPronunciation(sentence, 'uk');
+      });
+      document.getElementById('exampleAU')?.addEventListener('click', () => {
+        const sentence = document.getElementById('example-en')?.textContent;
+        if (sentence) playPronunciation(sentence, 'au');
+      });
+
+      
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+      document.querySelector('.sidebar')?.classList.toggle('show');
+    });
+
+    document.getElementById('addMyWordsBtn').addEventListener('click', async () => {
+      const endpoint = '/api/mywords';
+      const method = isMyWords ? 'DELETE' : 'POST';
+
+      const payload = {
+        user_id: userId,
+        word_id: wordId
+      };
+
+      if (!isMyWords) {
+        // 추가할 때만 source 포함
+        payload.source = 'favorite';
+      }
+
+      const res = await fetch(endpoint, {
+        method,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        isMyWords = !isMyWords;
+        updateMyWordsBtn();
+        alert(isMyWords ? 'MyWords에 추가되었습니다.' : 'MyWords에서 삭제되었습니다.');
+      } else {
+        alert('요청에 실패했습니다.');
+      }
+    });
+
+    function updateMyWordsBtn() {
+      const btn = document.getElementById('addMyWordsBtn');
+      if (!btn) return;
+      btn.textContent = isMyWords
+        ? 'MyWords에서 삭제'
+        : 'MyWords에 추가';
+    }
+
+
     </script>
 </body>
 </html>

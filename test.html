@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EnPick - 테스트 진행</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .test-wrapper {
+      margin-left: 220px;
+      padding: 80px 40px;
+    }
+
+    @media (max-width: 768px) {
+      .test-wrapper {
+        margin-left: 0;
+        padding-top: 80px;
+      }
+    }
+
+    .test-box {
+      max-width: 600px;
+      margin: auto;
+      background: #f4f6ff;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .question-number {
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .question {
+      font-size: 24px;
+      margin: 20px 0;
+    }
+
+    .answer-input {
+      width: 80%;
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .submit-btn {
+      margin-top: 24px;
+      padding: 12px 24px;
+      background-color: #6c80ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="hamburger" id="hamburger">&#9776;</div>
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
+    </div>
+  </nav>
+  <div class="sidebar" id="sidebar">
+    <a href="home.html" class="menu-item">홈</a>
+    <a href="vocabulary.html" class="menu-item">전체 단어장</a>
+    <a href="mywords.html" class="menu-item">My 단어장</a>
+    <a href="study.html" class="menu-item">학습</a>
+    <a href="gamestart.html" class="menu-item">단어 미니 게임</a>
+    <a href="teststart.html" class="menu-item active">테스트</a>
+    <a href="#" class="menu-item">통계</a>
+  </div>
+
+  <div class="test-wrapper">
+    <div class="test-box">
+      <div class="question-number" id="qNumber">1 / 10</div>
+      <div class="question" id="qMeaning">뜻: ...</div>
+      <input type="text" id="answerInput" class="answer-input" placeholder="영어 단어를 입력하세요" autocomplete="off" />
+      <button class="submit-btn" onclick="submitAnswer()">제출</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("hamburger")?.addEventListener("click", () => {
+      document.getElementById("sidebar")?.classList.toggle("show");
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      localStorage.setItem("testSource", testType);
+      try {
+        const res = await fetch('/api/me', { credentials: 'include' });
+        if (!res.ok) throw new Error();
+        const user = await res.json();
+
+        const userSpan = document.createElement('span');
+        userSpan.textContent = `${user.email}님`;
+        document.querySelector('.nav-user')?.prepend(userSpan);
+
+        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+          try {
+            await fetch('/logout', {
+              method: 'POST',
+              credentials: 'include'
+            });
+          } catch (err) {
+            console.error('로그아웃 실패:', err);
+          }
+
+          localStorage.clear();
+          window.location.href = 'login.html';
+        });
+      } catch (err) {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html';
+      }
+    });
+
+
+    const urlParams = new URLSearchParams(location.search);
+    const testType = urlParams.get("type");
+    const count = parseInt(urlParams.get("count"), 10);
+    const source = urlParams.get("source");
+    const difficulty = urlParams.get("difficulty")?.split(',') || [];
+
+    let current = 0;
+    let questions = [];
+    let userAnswers = [];
+
+    const retryList = JSON.parse(localStorage.getItem("retryWords") || "[]");
+
+    if (testType === "retry" && retryList.length > 0) {
+      fetch(`/api/testwords/retry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word_ids: retryList })
+      })
+      .then(res => res.json())
+      .then(data => {
+        questions = data;
+        showQuestion();
+      });
+    } else {
+      fetch(`/api/testwords?type=${testType}&count=${count}&source=${source}&difficulty=${difficulty.join(',')}`)
+        .then(res => res.json())
+        .then(data => {
+          questions = data;
+          showQuestion();
+        });
+    }
+
+    function showQuestion() {
+      if (current >= questions.length) {
+        const result = questions.map((q, i) => ({
+          word_id: q.id,
+          word: q.word,
+          meaning: q.meaning,
+          difficulty: q.difficulty,
+          correct: q.word.trim().toLowerCase() === (userAnswers[i] || '').trim().toLowerCase(),
+          userAnswer: userAnswers[i] || ''
+        }));
+        localStorage.setItem("testResult", JSON.stringify(result));
+        localStorage.removeItem("retryWords");
+        location.href = 'testresult.html';
+        return;
+      }
+      document.getElementById("qNumber").textContent = `${current + 1} / ${questions.length}`;
+      document.getElementById("qMeaning").textContent = `뜻: ${questions[current].meaning}`;
+      document.getElementById("answerInput").value = '';
+      document.getElementById("answerInput").focus();
+    }
+
+    function submitAnswer() {
+      const input = document.getElementById("answerInput").value;
+      userAnswers.push(input);
+      current++;
+      showQuestion();
+    }
+  </script>
+</body>
+</html>

@@ -51,6 +51,12 @@
     margin: 10px 0;
 }
 
+.example-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .example-text {
     color: #333;
     font-style: italic;
@@ -67,11 +73,43 @@
     background: #4a6bff;
     color: white;
     text-decoration: none;
+    border: none;
     border-radius: 5px;
     margin-top: 20px;
+    cursor: pointer;
+    font-family: inherit;
     transition: background 0.3s;
 }
 
 .back-button:hover {
     background: #3a5bef;
 }
+
+.word-title-row {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.tts-btn {
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    vertical-align: baseline;
+    padding: 0;
+    color: #777;
+    transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.tts-btn:hover {
+    color: #000;
+}
+
+.tts-buttons {
+    display: flex;
+    gap: 6px;
+  }
+  

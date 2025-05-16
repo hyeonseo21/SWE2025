@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EnPick - 단어 학습</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/study.css" />
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <span id="userEmail"></span>
+      <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
+    </div>
+    <div class="hamburger" id="hamburger">&#9776;</div>
+  </nav>
+
+  <div class="sidebar" id="sidebar">
+    <a href="home.html" class="menu-item">홈</a>
+    <a href="vocabulary.html" class="menu-item">전체 단어장</a>
+    <a href="mywords.html" class="menu-item">My 단어장</a>
+    <a href="study.html" class="menu-item active">학습</a>
+    <a href="gamestart.html" class="menu-item">단어 미니 게임</a>
+    <a href="teststart.html" class="menu-item">테스트</a>
+    <a href="#" class="menu-item">통계</a>
+  </div>
+
+  <main class="main-content study-content">
+    <div class="study-header">
+      <h2>단어 학습</h2>
+    </div>
+    <div class="study-actions-inline">
+        <button onclick="location.href='teststart.html'">테스트 바로가기</button>
+        <button onclick="location.href='gamestart.html'">게임 바로가기</button>
+    </div>
+    <div class="wordbook-toggle">
+        <button id="btnAll" class="wordbook-btn active">전체 단어장</button>
+        <button id="btnMy" class="wordbook-btn">My 단어장</button>
+    </div>
+    <div class="difficulty-filter" id="difficultyFilter" style="display:none;"></div>
+
+    <div class="card-container">
+      <div class="word-card" id="wordCard">
+        <div class="card-inner" id="cardInner">
+          <div class="card-front">
+            <div class="card-word" id="cardWord">단어</div>
+          </div>
+          <div class="card-back">
+            <div class="card-meaning" id="cardMeaning">뜻</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-controls-row">
+          <button id="ttsUS">US 🔊</button>
+          <button id="ttsUK">GB 🔊</button>
+          <button id="ttsAU">AU 🔊</button>
+        </div>
+        <div class="card-controls-row">
+          <button id="starBtn"> ☆ </button>
+          <button id="detailBtn">🔍 단어 상세</button>
+        </div>
+
+    <div class="card-navigation">
+      <button id="prevBtn">← 이전</button>
+      <span id="progress">1 / 1</span>
+      <button id="nextBtn">다음 →</button>
+    </div>
+  </main>
+
+  <script>
+    let words = [];
+    let current = 0;
+    let userId = null;
+    let currentType = 'all';
+    let diffButtonsInitialized = false;
+    const selectedDiffs = new Set();
+
+    const btnAll = document.getElementById('btnAll');
+    const btnMy = document.getElementById('btnMy');
+    const difficultyFilter = document.getElementById('difficultyFilter');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1) 로그인 검사
+      try {
+        const res = await fetch('/api/me');
+        if (!res.ok) throw new Error();
+        const { email, id } = await res.json();
+        document.getElementById('userEmail').textContent = email;
+        userId = id;
+      } catch {
+        alert('로그인이 필요합니다.');
+        return window.location.href = 'login.html';
+      }
+
+      // 2) 토글 버튼 이벤트
+      btnAll.addEventListener('click', () => {
+        if (currentType === 'all') return;
+        currentType = 'all';
+        updateToggleUI();
+        loadWords();
+      });
+      btnMy.addEventListener('click', () => {
+        if (currentType === 'my') return;
+        currentType = 'my';
+        updateToggleUI();
+        loadWords();
+      });
+
+      // 3) 로그아웃
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        fetch('/api/logout').then(() => location.href = 'login.html');
+      });
+
+      // 4) 초기 UI / 데이터 로드
+      updateToggleUI();
+      loadWords();
+    });
+
+    // UI 토글 (전체/My 모드)
+    function updateToggleUI() {
+      btnAll.classList.toggle('active', currentType === 'all');
+      btnMy.classList.toggle('active', currentType === 'my');
+      difficultyFilter.style.display = (currentType === 'all') ? 'flex' : 'none';
+    }
+
+    // 단어 목록 불러오기
+    async function loadWords() {
+      const params = new URLSearchParams({ type: currentType });
+      if (currentType === 'all' && selectedDiffs.size > 0) {
+        selectedDiffs.forEach(d => params.append('difficulty', d));
+      }
+
+      const res = await fetch(`/api/words?${params.toString()}`);
+      const data = await res.json();
+      words = data;
+      showWord(0);
+
+      // 처음 전체 모드 진입 시에만 난이도 버튼 초기화
+      if (currentType === 'all' && !diffButtonsInitialized) {
+        initDifficultyButtons(data);
+      }
+    }
+
+    // 난이도 버튼 생성 & 기본 선택
+    function initDifficultyButtons(data) {
+      diffButtonsInitialized = true;
+      difficultyFilter.innerHTML = '';
+      selectedDiffs.clear();
+
+      // 고유 난이도 문자열 목록 추출
+      const diffs = Array.from(new Set(data.map(w => String(w.difficulty))))
+                        .sort();
+
+      diffs.forEach(d => {
+        selectedDiffs.add(d);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'difficulty-btn active';
+        btn.textContent = d;
+
+        btn.addEventListener('click', () => {
+          const isActive = selectedDiffs.has(d);
+          btn.classList.toggle('active', !isActive);
+          if (isActive) selectedDiffs.delete(d);
+          else selectedDiffs.add(d);
+          loadWords();
+        });
+
+        difficultyFilter.appendChild(btn);
+      });
+    }
+
+    // 카드에 단어·의미 표시
+    function showWord(idx) {
+      const wordEl = document.getElementById('cardWord');
+      const meaningEl = document.getElementById('cardMeaning');
+      const progressEl = document.getElementById('progress');
+
+      if (words.length === 0) {
+        wordEl.textContent = '단어 없음';
+        meaningEl.textContent = '';
+        progressEl.textContent = '0 / 0';
+        return;
+      }
+      const w = words[idx];
+
+      const card = document.getElementById('wordCard');
+
+      // 1. 슬라이드 방향 결정
+      const direction = (idx > current) ? 'slide-left' : 'slide-right';
+
+      // 2. 기존 애니메이션 제거
+      card.classList.remove('slide-left', 'slide-right');
+
+      // 3. 트리거용 재렌더링
+      void card.offsetWidth;  // 강제로 reflow 발생
+
+      // 4. 새 애니메이션 추가
+      card.classList.add(direction);
+
+      current = idx;
+      wordEl.textContent = w.word;
+      meaningEl.textContent = w.meaning;
+      progressEl.textContent = `${idx + 1} / ${words.length}`;
+
+      // 즐겨찾기 버튼 상태
+      starBtn.textContent = w.is_starred ? '★' : '☆';
+      starBtn.classList.toggle('active', Boolean(w.is_starred));
+    }
+
+    // 카드 플립
+    document.getElementById('cardInner').addEventListener('click', () => {
+      document.getElementById('cardInner').classList.toggle('flipped');
+    });
+
+    // 이전/다음
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (current > 0) showWord(current - 1);
+      else showWord(words.length - 1);
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (current < words.length - 1) showWord(current + 1);
+      else showWord(0);
+    });
+
+    // 즐겨찾기 토글
+    document.getElementById('starBtn').addEventListener('click', () => {
+      const w = words[current];
+      const adding = !w.is_starred;
+      fetch('/api/mywords', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ user_id: userId, word_id: w.id, source: 'favorite' })
+      }).then(() => {
+        w.is_starred = adding;
+        document.getElementById('starBtn');
+        starBtn.textContent = adding ? '★' : '☆';
+        starBtn.classList.toggle('active', adding);
+      });
+    });
+
+    // 상세보기 버튼
+    document.getElementById('detailBtn').addEventListener('click', () => {
+      const w = words[current];
+      location.href = `seemore.html?wordId=${encodeURIComponent(w.id)}`;
+    });
+
+    // 발음 재생
+    function playPron(region) {
+      const text = words[current].word;
+      const audio = new Audio(`/api/tts?text=${encodeURIComponent(text)}&region=${region}`);
+      audio.onerror = () => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = { us:'en-US', uk:'en-GB', au:'en-AU' }[region] || 'en-US';
+        u.rate = 0.9;
+        speechSynthesis.speak(u);
+      };
+      audio.play();
+    }
+    document.getElementById('ttsUS').addEventListener('click', () => playPron('us'));
+    document.getElementById('ttsUK').addEventListener('click', () => playPron('uk'));
+    document.getElementById('ttsAU').addEventListener('click', () => playPron('au'));
+
+      // 1) 컨테이너는 한 번만 선언
+    const cardContainer = document.querySelector('.card-container');
+
+    // 2) 공통 스와이프 임계값
+    const swipeThreshold = 50; // 터치/마우스 드래그 모두 사용
+
+    // 3) 터치용 변수
+    let touchStartX = 0;
+    let touchEndX   = 0;
+
+    // 4) 마우스용 변수
+    let isMouseDown = false;
+    let mouseStartX = 0;
+    let mouseEndX   = 0;
+
+    // ─── 터치 이벤트 ─────────────────────────
+    cardContainer.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+
+    cardContainer.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe(touchEndX - touchStartX);
+    });
+
+    // ─── 마우스 이벤트 ────────────────────────
+    cardContainer.addEventListener('mousedown', e => {
+      isMouseDown = true;
+      mouseStartX = e.clientX;
+    });
+
+    cardContainer.addEventListener('mousemove', e => {
+      if (isMouseDown) mouseEndX = e.clientX;
+    });
+
+    cardContainer.addEventListener('mouseup', e => {
+      if (!isMouseDown) return;
+      isMouseDown = false;
+      mouseEndX = e.clientX;
+      handleSwipe(mouseEndX - mouseStartX);
+    });
+
+    // ─── 공통: 스와이프 처리 함수 ─────────────────
+    function handleSwipe(diff) {
+      if (Math.abs(diff) < swipeThreshold) return;
+      if (diff > 0) {
+        // 오른쪽 스와이프/드래그 → 이전 카드
+        if (current > 0) showWord(current - 1);
+        else showWord(words.length - 1);
+      } else {
+        // 왼쪽 스와이프/드래그 → 다음 카드
+        if (current < words.length - 1) showWord(current + 1);
+        else showWord(0);
+      }
+    }
+
+    document.getElementById('hamburger')?.addEventListener('click', () => {
+      document.querySelector('.sidebar')?.classList.toggle('show');
+    });
+  </script>
+</body>
+</html>

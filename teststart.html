@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EnPick - 테스트 시작</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .setup-wrapper {
+      margin-left: 220px;
+      padding: 40px;
+      padding-top: 80px;
+    }
+
+    @media (max-width: 768px) {
+      .setup-wrapper {
+        margin-left: 0;
+        padding-top: 80px;
+      }
+    }
+
+    .setup-container {
+      max-width: 600px;
+      margin: auto;
+      background: #f9f9ff;
+      padding: 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .group-label {
+      margin-top: 24px;
+      font-weight: bold;
+    }
+
+    .option-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .option-row label {
+      display: inline-block;
+      padding: 10px 16px;
+      background-color: #e0e7ff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .option-row input:checked + label {
+      background-color: #6c80ff;
+      color: white;
+    }
+
+    .start-btn {
+      margin-top: 32px;
+      width: 100%;
+      padding: 14px;
+      background-color: #6c80ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <img src="assets/enpick-logo.png" alt="EnPick 로고" />
+      <h2>EnPick</h2>
+    </div>
+    <div class="nav-user">
+      <a href="#" id="logoutBtn" class="logout-btn">로그아웃</a>
+    </div>
+    <div class="hamburger" id="hamburger">&#9776;</div>
+  </nav>
+
+  <div class="sidebar" id="sidebar">
+    <a href="home.html" class="menu-item">홈</a>
+    <a href="vocabulary.html" class="menu-item">전체 단어장</a>
+    <a href="mywords.html" class="menu-item">My 단어장</a>
+    <a href="study.html" class="menu-item">학습</a>
+    <a href="gamestart.html" class="menu-item">단어 미니 게임</a>
+    <a href="teststart.html" class="menu-item active">테스트</a>
+    <a href="#" class="menu-item">통계</a>
+  </div>
+
+  <div class="setup-wrapper">
+    <div class="setup-container">
+      <h1>📝 테스트 시작</h1>
+
+      <div class="group-label">테스트 유형</div>
+      <div class="option-row">
+        <input type="radio" name="testType" value="daily" id="daily" checked hidden />
+        <label for="daily">매일 테스트</label>
+
+        <input type="radio" name="testType" value="level" id="level" hidden />
+        <label for="level">레벨 테스트</label>
+      </div>
+
+      <div class="group-label" id="sourceLabel">단어장 선택 (매일 테스트 전용)</div>
+      <div class="option-row" id="sourceGroup">
+        <input type="radio" name="source" value="mywords" id="mywords" checked hidden />
+        <label for="mywords">My 단어장</label>
+
+        <input type="radio" name="source" value="all" id="all" hidden />
+        <label for="all">전체 단어장</label>
+      </div>
+
+      <div class="group-label" id="difficultyLabel">난이도 선택 (중복 가능)</div>
+      <div class="option-row" id="difficultyGroup">
+        <input type="checkbox" name="difficulty" value="600" id="d600" checked hidden />
+        <label for="d600">600</label>
+
+        <input type="checkbox" name="difficulty" value="700" id="d700" checked hidden />
+        <label for="d700">700</label>
+
+        <input type="checkbox" name="difficulty" value="800" id="d800" checked hidden />
+        <label for="d800">800</label>
+
+        <input type="checkbox" name="difficulty" value="900" id="d900" checked hidden />
+        <label for="d900">900</label>
+      </div>
+
+      <div class="group-label" id="countLabel">문제 수</div>
+      <div class="option-row" id="countGroup">
+        <input type="radio" name="count" value="10" id="c10" checked hidden />
+        <label for="c10">10문제</label>
+
+        <input type="radio" name="count" value="20" id="c20" hidden />
+        <label for="c20">20문제</label>
+
+        <input type="radio" name="count" value="30" id="c30" hidden />
+        <label for="c30">30문제</label>
+      </div>
+
+      <button class="start-btn" onclick="startTest()">테스트 시작</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("hamburger")?.addEventListener("click", () => {
+      document.getElementById("sidebar")?.classList.toggle("show");
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const res = await fetch('/api/me', { credentials: 'include' });
+        if (!res.ok) throw new Error();
+        const user = await res.json();
+
+        const userSpan = document.createElement('span');
+        userSpan.textContent = `${user.email}님`;
+        document.querySelector('.nav-user')?.prepend(userSpan);
+
+        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+          try {
+            await fetch('/logout', {
+              method: 'POST',
+              credentials: 'include'
+            });
+          } catch (err) {
+            console.error('로그아웃 실패:', err);
+          }
+
+          localStorage.clear();
+          window.location.href = 'login.html';
+        });
+      } catch (err) {
+        alert('로그인이 필요합니다.');
+        window.location.href = 'login.html';
+      }
+    });
+
+
+    const testTypeRadios = document.querySelectorAll('input[name="testType"]');
+    const sourceGroup = document.getElementById("sourceGroup");
+    const sourceLabel = document.getElementById("sourceLabel");
+    const difficultyGroup = document.getElementById("difficultyGroup");
+    const difficultyLabel = document.getElementById("difficultyLabel");
+    const countGroup = document.getElementById("countGroup");
+    const countLabel = document.getElementById("countLabel");
+
+    function toggleGroups() {
+      const isDaily = document.getElementById("daily").checked;
+      const isLevel = document.getElementById("level").checked;
+      const isAll = document.getElementById("all").checked;
+
+      sourceGroup.style.display = sourceLabel.style.display = isDaily ? "flex" : "none";
+      difficultyGroup.style.display = difficultyLabel.style.display = (isDaily && isAll) ? "flex" : "none";
+      countGroup.style.display = countLabel.style.display = isLevel ? "none" : "flex";
+    }
+
+    testTypeRadios.forEach(radio => radio.addEventListener("change", toggleGroups));
+    document.querySelectorAll('input[name="source"]').forEach(r => r.addEventListener("change", toggleGroups));
+    toggleGroups();
+
+    function startTest() {
+      const testType = document.querySelector('input[name="testType"]:checked').value;
+      const source = document.querySelector('input[name="source"]:checked')?.value || '';
+      const difficulties = Array.from(document.querySelectorAll('input[name="difficulty"]:checked')).map(cb => cb.value);
+
+      const params = new URLSearchParams();
+      params.set("type", testType);
+      params.set("count", testType === "level" ? "24" : document.querySelector('input[name="count"]:checked').value);
+      if (testType === 'daily') {
+        params.set("source", source);
+        if (source === 'all') {
+          params.set("difficulty", difficulties.join(","));
+        }
+      }
+
+      window.location.href = `test.html?${params.toString()}`;
+    }
+  </script>
+</body>
+</html>
+

@@ -276,6 +276,24 @@ button:hover {
   display: none;
 }
 
+
+/* 햄버거 메뉴 기본 숨김 */
+.hamburger {
+  display: none;
+  font-size: 20px;
+  padding: 10px 14px;
+  cursor: pointer;
+  z-index: 1001;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  position: absolute;
+  top: 7px;
+  left: 10px;
+  color: black;
+}
+
+
 /* 반응형: 태블릿 이하 */
 @media screen and (max-width: 768px) {
   .container {
@@ -305,4 +323,37 @@ button:hover {
   .logo-box p {
     font-size: 18px;
   }
+
+  .sidebar {
+    display: none;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .sidebar.show {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: white;
+    width: 220px;
+    height: 100%;
+    z-index: 999;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    padding-top: 60px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding-top: 60px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .nav-logo h2 {
+    font-size: 18px;
+  }
 }
+

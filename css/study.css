@@ -1,0 +1,271 @@
+/* 기본 카드 스타일 */
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+}
+
+.word-card {
+  width: 300px;
+  height: 200px;
+  perspective: 1000px;
+  position: relative;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+}
+
+.card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  font-weight: bold;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+  background-color: #f9f9ff;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  background-color: #f0f4ff;
+}
+
+.card-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-controls button {
+  font-size: 16px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: #e7e9f3;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.card-controls button:hover {
+  background-color: #d1d5e8;
+}
+
+.card-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.study-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #eef2fc;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.study-title {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.study-actions button {
+  margin-left: 12px;
+  background-color: #6b8bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.study-actions button:hover {
+  background-color: #5a76e0;
+}
+
+.card-controls-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+
+.study-actions-inline {
+  margin-top: 12px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.difficulty-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+
+.wordbook-btn {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background: #f5f5f5;
+  color: #333;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.wordbook-btn + .wordbook-btn {
+  margin-left: -1px; /* 경계선 겹침 방지 */
+}
+
+.wordbook-btn.active {
+  background: #fff;
+  color: #007bff;
+  border-color: #007bff #007bff #fff; /* 아래쪽 테두리만 없애서 연결된 카드와 이어지게 */
+  font-weight: 600;
+  box-shadow: 0 -2px 6px rgba(0, 123, 255, 0.2);
+}
+
+/* difficulty-filter 버튼 기본/선택 상태 */
+.difficulty-btn {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  color: #333;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.difficulty-btn + .difficulty-btn {
+  margin-left: 4px;
+}
+
+.difficulty-btn.active {
+  background: #007bff;
+  color: #fff;
+  border-color: #0056b3;
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.4);
+  font-weight: 500;
+}
+
+.wordbook-toggle,
+.difficulty-filter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;       /* 버튼들 간 간격 */
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.difficulty-filter {
+  margin-top: -8px;
+}
+
+#starBtn {
+  font-size: 24px;
+  color: #fff;
+  transition: color .2s;
+}
+#starBtn.active {
+  color: gold;
+}
+
+/* 카드 넘김 애니메이션 */
+.word-card.slide-left {
+  animation: slideLeft 0.4s ease forwards;
+}
+
+.word-card.slide-right {
+  animation: slideRight 0.4s ease forwards;
+}
+
+@keyframes slideLeft {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideRight {
+  0% { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+
+@media (max-width: 768px) {
+  .card-container {
+    padding: 16px;
+  }
+
+  .word-card {
+    width: 90%;
+    height: 180px;
+  }
+
+  .card-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .study-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .study-actions button {
+    width: 100%;
+  }
+
+  main.study-content {
+    padding-top: 0;
+    margin-top: 0;
+  }
+}
+
+
+.part-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.part-btn {
+  padding: 6px 12px;
+  background-color: #eee;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.part-btn.active {
+  background-color: #4f7cfc;
+  color: white;
+}
