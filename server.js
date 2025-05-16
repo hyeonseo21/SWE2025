@@ -37,9 +37,9 @@ app.use(session({
 // MySQL과 연결
 const db = mysql.createConnection({
   host: 'localhost',
-  port: 9090,   //수정됨: port번호 3306 아닐경우 추가
+  port: 3306,   //수정됨: port번호 3306 아닐경우 추가
   user: 'root',
-  password: '1234',
+  password: ' ',
   database: 'enpick_db'
 });
 
@@ -202,17 +202,46 @@ app.post('/reset-password', async (req, res) => { //비밀번호 재설정
 });
 
 // 단어장 단어 목록 API (MySQL에서 조회)
+// My단어장 반영 수정.
 app.get('/api/words', (req, res) => {
-  const query = 'SELECT id, word, part_of_speech, meaning, difficulty FROM word_lists ORDER BY word ASC';
+  const { type, difficulty } = req.query;
+  const userId = req.session.user.id;
+  const params = [ userId ];
+  let sql = `
+    SELECT
+      wl.id, wl.word, wl.part_of_speech, wl.meaning, wl.difficulty,
+      IF(m.user_id IS NOT NULL, 1, 0) AS is_starred
+    FROM word_lists wl
+    LEFT JOIN mywords m
+      ON wl.id = m.word_id
+     AND m.user_id = ?
+  `;
 
-  db.query(query, (err, results) => {
+  if (type === 'my') {
+    // 내 단어장 모드: INNER JOIN 효과
+    sql += ` WHERE m.user_id = ? `;
+    params.push(userId);
+  }
+  else if (difficulty) {
+    const diffs = Array.isArray(difficulty) ? difficulty : [difficulty];
+    const ph = diffs.map(_=>'?').join(',');
+    sql += ` WHERE wl.difficulty IN (${ph}) `;
+    params.push(...diffs);
+  }
+
+  sql += ` ORDER BY wl.word ASC`;
+
+  db.query(sql, params, (err, results) => {
     if (err) {
-      console.error('단어 DB 조회 오류:', err);
+      console.error(err);
       return res.status(500).json({ error: 'DB 조회 실패' });
     }
     res.json(results);
   });
 });
+
+
+
 
 app.post('/api/words', (req, res) => {
   const { word, part_of_speech, meaning, difficulty } = req.body;
@@ -350,6 +379,50 @@ app.post('/api/details/:wordId', (req, res) => {
   });
 });
 
+//음성 인식
+app.get('/api/tts', async (req, res) => {
+  const text = req.query.text;
+  const region = req.query.region || 'us'; // 기본 미국식
+  if (!text) return res.status(400).send('Text query is required.');
+
+  // Voice ID 설정
+  const VOICES = {
+    us: 'ErXwobaYiN019PkySvjV', // Antoni - 미국식
+    uk: 'ThT5KcBeYPX3keUQqHPh',   // Dorothy - 영국식
+    au: 'ZQe5CZNOzWyzPSCn5a3c'    // James - 호주식
+  };
+  const VOICE_ID = VOICES[region] || VOICES.us;
+
+  try {
+    const ttsRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+      method: 'POST',
+      headers: {
+        'accept': 'audio/mpeg',
+        'xi-api-key': 'sk_d060c0d4d86e9d43614031f95b2c23b9d49746d59f1241bd', // 실제 API 키로 대체
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: {
+          stability: 0.4,
+          similarity_boost: 0.7
+        }
+      })
+    });
+
+    if (!ttsRes.ok) return res.status(ttsRes.status).send('Failed to fetch TTS audio');
+
+    const arrayBuffer = await ttsRes.arrayBuffer();
+    const audioBuffer = Buffer.from(arrayBuffer); 
+    res.set('Content-Type', 'audio/mpeg');
+    res.send(audioBuffer);
+  } catch (err) {
+    console.error('TTS Error:', err);
+    res.status(500).send('TTS Server error');
+  }
+});
+
 app.post('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) return res.status(500).send('로그아웃 실패');
@@ -357,6 +430,284 @@ app.post('/logout', (req, res) => {
     res.send('로그아웃 성공');
   });
 });
+
+app.get('/api/gamewords', (req, res) => {
+  const user = req.session.user;
+  const { source, level, count } = req.query;
+
+  const limit = parseInt(count) || 10;
+
+  if (!user) return res.status(401).json({ error: '로그인 필요' });
+
+  if (source === 'mywords') {
+    // 사용자의 MyWords에서 랜덤하게 단어 추출
+    const sql = `
+      SELECT wl.id, wl.word, wl.meaning
+      FROM mywords mw
+      JOIN word_lists wl ON mw.word_id = wl.id
+      WHERE mw.user_id = ?
+      ORDER BY RAND() LIMIT ?
+    `;
+    db.query(sql, [user.id, limit], (err, results) => {
+      if (err) {
+        console.error('MyWords 게임 단어 조회 오류:', err);
+        return res.status(500).json({ error: 'DB 오류' });
+      }
+      res.json(results);
+    });
+  } else {
+    // 전체 단어장에서 난이도 기준으로 랜덤 추출
+    const sql = `
+      SELECT id, word, meaning
+      FROM word_lists
+      WHERE difficulty = ?
+      ORDER BY RAND() LIMIT ?
+    `;
+    db.query(sql, [level, limit], (err, results) => {
+      if (err) {
+        console.error('전체 단어장 게임 단어 조회 오류:', err);
+        return res.status(500).json({ error: 'DB 오류' });
+      }
+      res.json(results);
+    });
+  }
+});
+
+
+
+app.post('/api/mywords', (req, res) => {
+  const { user_id, word_id, source } = req.body;
+  const columnMap = {
+    favorite: 'added_by_favorite',
+    test: 'added_by_test',
+    game: 'added_by_game'
+  };
+  const targetColumn = columnMap[source];
+  if (!targetColumn) return res.status(400).send('잘못된 source');
+
+  const query = `
+    INSERT INTO mywords (user_id, word_id, ${targetColumn})
+    VALUES (?, ?, 1)
+    ON DUPLICATE KEY UPDATE
+      ${targetColumn} = 1,
+      added_at = NOW()
+  `;
+  db.query(query, [user_id, word_id], (err) => {
+    if (err) {
+      console.error('MyWords 추가 실패:', err);
+      return res.sendStatus(500);
+    }
+    res.sendStatus(200);
+  });
+});
+
+app.get('/api/mywords', (req, res) => {
+  const userId = req.query.user_id;
+  const sql = `
+    SELECT 
+      m.word_id, 
+      w.word, 
+      w.meaning, 
+      w.part_of_speech, 
+      m.added_by_favorite, 
+      m.added_by_test, 
+      m.added_by_game, 
+      m.added_at
+    FROM mywords m
+    JOIN word_lists w ON m.word_id = w.id
+    WHERE m.user_id = ?
+  `;
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error('My 단어장 불러오기 실패:', err);
+      return res.sendStatus(500);
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/testwords', (req, res) => {
+  const { type, count, source, difficulty } = req.query;
+  const userId = req.session.user?.id || req.query.user_id;
+
+  if (!userId && source === 'mywords') {
+    return res.status(401).json({ error: '로그인이 필요합니다.' });
+  }
+
+  if (type === 'daily') {
+    if (source === 'mywords') {
+      const query = `
+        SELECT w.id, w.word, w.meaning 
+        FROM mywords m 
+        JOIN word_lists w ON m.word_id = w.id 
+        WHERE m.user_id = ? 
+        ORDER BY RAND() LIMIT ?
+      `;
+      db.query(query, [userId, Number(count)], (err, results) => {
+        if (err) return res.status(500).json({ error: 'DB 오류' });
+        res.json(results);
+      });
+    } else {
+      const levels = (difficulty || '600,700,800,900').split(',');
+      const placeholders = levels.map(() => '?').join(',');
+      const query = `
+        SELECT id, word, meaning
+        FROM word_lists 
+        WHERE difficulty IN (${placeholders}) 
+        ORDER BY RAND() LIMIT ?
+      `;
+      db.query(query, [...levels, Number(count)], (err, results) => {
+        if (err) return res.status(500).json({ error: 'DB 오류' });
+        res.json(results);
+      });
+    }
+  } else if (type === 'level') {
+    const levels = ['600', '700', '800', '900'];
+    const eachCount = 6;
+    const promises = levels.map(lv => {
+      return new Promise((resolve, reject) => {
+        db.query(
+          `SELECT id, word, meaning, difficulty FROM word_lists WHERE difficulty = ? ORDER BY RAND() LIMIT ?`,
+          [lv, eachCount],
+          (err, results) => {
+            if (err) reject(err);
+            else resolve(results);
+          }
+        );
+      });
+    });
+
+    Promise.all(promises)
+      .then(results => {
+        const flat = results.flat().slice(0, Number(count));
+        res.json(flat);
+      })
+      .catch(err => {
+        console.error('레벨 테스트 DB 오류:', err);
+        res.status(500).json({ error: '레벨 테스트 불러오기 실패' });
+      });
+  } else {
+    res.status(400).json({ error: '잘못된 테스트 유형' });
+  }
+});
+
+app.post('/api/testwords/retry', (req, res) => {
+  const { word_ids } = req.body;
+  if (!word_ids || !Array.isArray(word_ids) || word_ids.length === 0) {
+    return res.status(400).json({ error: 'word_ids가 필요합니다.' });
+  }
+
+  const placeholders = word_ids.map(() => '?').join(',');
+  const sql = `SELECT id, word, meaning FROM word_lists WHERE id IN (${placeholders})`;
+
+  db.query(sql, word_ids, (err, results) => {
+    if (err) {
+      console.error('/api/testwords/retry 오류:', err);
+      return res.sendStatus(500);
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/mywords/check', (req, res) => {
+  const { user_id, word_id } = req.query;
+  const sql = `SELECT 1 FROM mywords WHERE user_id = ? AND word_id = ? LIMIT 1`;
+
+  db.query(sql, [user_id, word_id], (err, results) => {
+    if (err) return res.status(500).json({ error: 'DB 오류' });
+    res.json({ exists: results.length > 0 });
+  });
+});
+
+app.delete('/api/mywords', (req, res) => {
+  const { user_id, word_id } = req.body;
+  const sql = `DELETE FROM mywords WHERE user_id = ? AND word_id = ?`;
+
+  db.query(sql, [user_id, word_id], (err) => {
+    if (err) return res.status(500).json({ error: '삭제 실패' });
+    res.sendStatus(200);
+  });
+});
+
+app.post('/api/save-test-result', (req, res) => {
+  const { userId, correctCount, wrongCount } = req.body;
+  if (!userId || correctCount == null || wrongCount == null) {
+    return res.status(400).json({ error: '필수 값 누락' });
+  }
+
+  const sql = `
+    INSERT INTO test_results_summary (user_id, correct_total, wrong_total)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      correct_total = correct_total + VALUES(correct_total),
+      wrong_total = wrong_total + VALUES(wrong_total)
+  `;
+  db.query(sql, [userId, correctCount, wrongCount], (err) => {
+    if (err) {
+      console.error("누적 정답률 저장 오류:", err);
+      return res.status(500).json({ error: 'DB 오류' });
+    }
+    res.sendStatus(200);
+  });
+});
+
+app.get('/api/test-summary', (req, res) => {
+  const userId = req.session.user?.id;
+  if (!userId) return res.status(401).json({ error: '로그인 필요' });
+
+  const sql = `
+    SELECT correct_total, wrong_total, accuracy
+    FROM test_results_summary
+    WHERE user_id = ?
+  `;
+  db.query(sql, [userId], (err, results) => {
+    if (err) return res.status(500).json({ error: 'DB 오류' });
+    if (results.length === 0) {
+      return res.json({ correct_total: 0, wrong_total: 0, accuracy: 0 });
+    }
+    res.json(results[0]);
+  });
+});
+
+// ✅ 학습 완료 단어 조회
+app.get('/api/learned', (req, res) => {
+  const { user_id } = req.query;
+  const sql = `SELECT word_id FROM learned_words WHERE user_id = ?`;
+  db.query(sql, [user_id], (err, results) => {
+    if (err) {
+      console.error('학습 완료 조회 오류:', err);
+      return res.status(500).json({ error: 'DB 오류' });
+    }
+    res.json(results.map(r => r.word_id)); // [101, 102, ...]
+  });
+});
+
+// ✅ 학습 완료 추가
+app.post('/api/learned', (req, res) => {
+  const { user_id, word_id } = req.body;
+  const sql = `INSERT IGNORE INTO learned_words (user_id, word_id) VALUES (?, ?)`;
+  db.query(sql, [user_id, word_id], (err) => {
+    if (err) {
+      console.error('학습 완료 등록 오류:', err);
+      return res.status(500).json({ error: '등록 실패' });
+    }
+    res.sendStatus(200);
+  });
+});
+
+// ✅ 학습 완료 삭제
+app.delete('/api/learned', (req, res) => {
+  const { user_id, word_id } = req.body;
+  const sql = `DELETE FROM learned_words WHERE user_id = ? AND word_id = ?`;
+  db.query(sql, [user_id, word_id], (err) => {
+    if (err) {
+      console.error('학습 완료 삭제 오류:', err);
+      return res.status(500).json({ error: '삭제 실패' });
+    }
+    res.sendStatus(200);
+  });
+});
+
 
 
 app.listen(port, () => {
